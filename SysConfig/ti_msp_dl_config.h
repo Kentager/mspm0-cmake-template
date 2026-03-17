@@ -79,39 +79,23 @@ extern "C" {
 #define GPIO_HFXOUT_PIN                                            DL_GPIO_PIN_6
 #define GPIO_HFXOUT_IOMUX                                        (IOMUX_PINCM11)
 #define CPUCLK_FREQ                                                     80000000
+/* Defines for SYSPLL_ERR_01 Workaround */
+/* Represent 1.000 as 1000 */
+#define FLOAT_TO_INT_SCALE                                               (1000U)
+#define FCC_EXPECTED_RATIO                                                  2000
+#define FCC_UPPER_BOUND                       (FCC_EXPECTED_RATIO * (1 + 0.003))
+#define FCC_LOWER_BOUND                       (FCC_EXPECTED_RATIO * (1 - 0.003))
+
+bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 
 
 
-/* Defines for UART0 */
-#define UART0_INST                                                         UART0
-#define UART0_INST_FREQUENCY                                            40000000
-#define UART0_INST_IRQHandler                                   UART0_IRQHandler
-#define UART0_INST_INT_IRQN                                       UART0_INT_IRQn
-#define GPIO_UART0_RX_PORT                                                 GPIOA
-#define GPIO_UART0_TX_PORT                                                 GPIOA
-#define GPIO_UART0_RX_PIN                                         DL_GPIO_PIN_11
-#define GPIO_UART0_TX_PIN                                         DL_GPIO_PIN_10
-#define GPIO_UART0_IOMUX_RX                                      (IOMUX_PINCM22)
-#define GPIO_UART0_IOMUX_TX                                      (IOMUX_PINCM21)
-#define GPIO_UART0_IOMUX_RX_FUNC                       IOMUX_PINCM22_PF_UART0_RX
-#define GPIO_UART0_IOMUX_TX_FUNC                       IOMUX_PINCM21_PF_UART0_TX
-#define UART0_BAUD_RATE                                                 (115200)
-#define UART0_IBRD_40_MHZ_115200_BAUD                                       (21)
-#define UART0_FBRD_40_MHZ_115200_BAUD                                       (45)
+/* Port definition for Pin Group LED1 */
+#define LED1_PORT                                                        (GPIOB)
 
-
-
-
-
-/* Port definition for Pin Group PORTA */
-#define PORTA_PORT                                                       (GPIOA)
-
-/* Defines for LED_USER: GPIOA.0 with pinCMx 1 on package pin 33 */
-#define PORTA_LED_USER_PIN                                       (DL_GPIO_PIN_0)
-#define PORTA_LED_USER_IOMUX                                      (IOMUX_PINCM1)
-
-
-
+/* Defines for PIN_22: GPIOB.22 with pinCMx 50 on package pin 21 */
+#define LED1_PIN_22_PIN                                         (DL_GPIO_PIN_22)
+#define LED1_PIN_22_IOMUX                                        (IOMUX_PINCM50)
 
 
 /* clang-format on */
@@ -121,13 +105,10 @@ void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_SYSCTL_CLK_init(void);
-void SYSCFG_DL_UART0_init(void);
 
-void SYSCFG_DL_SYSTICK_init(void);
+bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 
 
-bool SYSCFG_DL_saveConfiguration(void);
-bool SYSCFG_DL_restoreConfiguration(void);
 
 #ifdef __cplusplus
 }

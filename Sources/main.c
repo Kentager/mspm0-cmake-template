@@ -1,39 +1,29 @@
-
-#include <stdlib.h>
-#include <string.h>
-
 #include "ti_msp_dl_config.h"
-#include "uart_printf.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
-
-void printLogTask()
+// 自定义延时（不精确）
+void delay_ms(unsigned int ms)
 {
-    while (true)
+    unsigned int i, j;
+    // 下面的嵌套循环的次数是根据主控频率和编译器生成的指令周期大致计算出来的，
+    // 需要通过实际测试调整来达到所需的延时。
+    for (i = 0; i < ms; i++)
     {
-        uart_printf("=== printLogTask thread ===\r\n");
-        uart_printf("Free heap memory left: %d bytes\r\n", xPortGetFreeHeapSize());
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        for (j = 0; j < 8000; j++)
+        {
+            // 仅执行一个足够简单以致于可以预测其执行时间的操作
+            __asm__("nop");// "nop" 代表“无操作”，在大多数架构中，这会消耗一个或几个时钟周期
+        }
     }
 }
 
-void blinkTask()
-{
-    while (true)
-    {
-        // LED 5Hz频率闪烁
-        DL_GPIO_togglePins(PORTA_PORT, PORTA_LED_USER_PIN);
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}
-
-int main()
+int main(void)
 {
     SYSCFG_DL_init();
-    TaskHandle_t printLogTask_handle;
-    TaskHandle_t blinkTask_handle;
-    xTaskCreate(printLogTask, "printLogTask", 0x80, NULL, configMAX_PRIORITIES - 1, &printLogTask_handle);
-    xTaskCreate(blinkTask, "blinkTask", 0x80, NULL, configMAX_PRIORITIES - 1, &blinkTask_handle);
-    vTaskStartScheduler();
+    while (1)
+    {
+        DL_GPIO_clearPins(LED1_PORT, LED1_PIN_22_PIN);// 输出低电平
+        delay_ms(1000);                               // 延时大概1S
+        DL_GPIO_setPins(LED1_PORT, LED1_PIN_22_PIN);  // 输出高电平
+        delay_ms(1000);                               // 延时大概1S
+    }
 }
