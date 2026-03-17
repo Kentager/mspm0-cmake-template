@@ -1,0 +1,3 @@
+Pin#, PORT IO, Function, Direction
+35,PA20,DEBUGSS.SWCLK,
+34,PA19,DEBUGSS.SWDIO,
