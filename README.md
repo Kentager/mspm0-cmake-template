@@ -1,11 +1,12 @@
-# TIMSPM0G3507+Cmake+Clangd+Ozone开发一篇通
+# TIMSPM0G3507+Cmake+Clangd开发一篇通
 
-## 一. 四件套
+## 一. 五件套
 
 - Cmake
 - Ninja
 - Clangd
 - arm-none-eabi-gcc
+- openocd
 
 ### 1.安装Cmake
 - 链接 https://github.com/Kitware/CMake/releases/
@@ -22,17 +23,24 @@
 
 ### 2.安装ninja
 - 链接 https://github.com/ninja-build/ninja/releases/
-- 同样的把bin文件夹添加到环境变量
+- 同样的把有exe可执行文件的文件夹添加到环境变量
 
 ### 3.安装Clangd
 - 链接 https://github.com/llvm/llvm-project/releases/
-- 同样的把bin文件夹添加到环境变量
+- 安装好会自动添加到环境变量，若自动添加环境变量失败可手动寻找bin手动添加
 
 ### 4.安装arm-none-eabi-gcc
 
-- 开发过stm32的大概率已经有了，可以在终端试试。
+- 开发过stm32的大概率已经有了，可以在终端试试。`arm-none-eabi-gcc --version`
 - 链接 https://developer.arm.com/downloads/-/gnu-rm
-- 同样的把bin文件夹添加到环境变量
+- 同样的添加到环境变量
+
+### 5.安装openocd
+
+- 链接 https://github.com/xpack-dev-tools/openocd-xpack/releases
+- 同样的添加到环境变量
+- ***要注意openocd版本，0.12版本以上才支持ti的芯片***
+- PS 根据keysking的clion配置教程的openocd版本不支持ti
 
 #### PS：验证是否添加环境变量起效（win+x+i打开终端）
 
@@ -51,7 +59,12 @@ clangd --version
 ```
 arm-none-eabi-gcc --version
 ```
-### 5.安装ti的环境
+```
+openocd --version
+```
+
+### 6.安装ti的环境
+
 #### 1. MSPM0-SDK
 -  链接 https://www.ti.com/tool/MSPM0-SDK#downloads
 #### 2. SYSCONFIG
@@ -89,7 +102,7 @@ arm-none-eabi-gcc --version
 
 - 添加 `--compile-commands-dir=${workspaceFolder}/build`
 
-- 若安装了微软官方C/C++插件，右下角会弹出intellisense冲突直接disable
+- 若安装了微软官方C/C++插件，右下角会弹出intellisense冲突，直接点击disable
 
 ### 2.项目结构
 -使用git或者其他方式拉取本项目
@@ -109,8 +122,8 @@ MSPM0-CMAKE-GCC-TEMPLATE/
 ├── Includes/               # 头文件等
 ```
 ### 3. 配置
-- 打开mspm0g350x_base.cmake
-- 在大约40行附近，修改你电脑m0sdk的实际路径
+- **打开mspm0g350x_base.cmake**
+- 在大约40行附近，修改你电脑tim0sdk的实际路径
 ```
 # 设置SDK路径
 #######################
@@ -166,5 +179,11 @@ set(MSPM0_SDK_PATH "D:/TI/mspm0_sdk_2_10_00_04")
 
 - 剩下sysconfig使用教程参考网上
 
+## 四.可能存在的问题
 
+### 1.代码爆红
+
+- 如果clangd配置好之后代码依然爆红（vscode语法提示错误）
+
+- 请按下ctrl+shift+p，输入clangd，找到clangd: Restart Language Server，使用鼠标点击，或者使用键盘上的方向键选中后按下回车，此时你的代码应该就不会爆红了，而且代码提示和跳转也会恢复正常.
 
