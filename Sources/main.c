@@ -1,29 +1,33 @@
+#include "FreeRTOS.h"
+#include "task.h"
 #include "ti_msp_dl_config.h"
 
-// 自定义延时（不精确）
-void delay_ms(unsigned int ms)
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
-    unsigned int i, j;
-    // 下面的嵌套循环的次数是根据主控频率和编译器生成的指令周期大致计算出来的，
-    // 需要通过实际测试调整来达到所需的延时。
-    for (i = 0; i < ms; i++)
+    (void)xTask;
+    (void)pcTaskName;
+    for (;;) {}
+}
+
+void vApplicationMallocFailedHook(void)
+{
+    for (;;) {}
+}
+
+static void vBlinkTask(void *pvParameters)
+{
+    (void)pvParameters;
+    for (;;)
     {
-        for (j = 0; j < 8000; j++)
-        {
-            // 仅执行一个足够简单以致于可以预测其执行时间的操作
-            __asm__("nop");// "nop" 代表“无操作”，在大多数架构中，这会消耗一个或几个时钟周期
-        }
+        DL_GPIO_togglePins(LED_PORT, LED_PIN_24_PIN);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 int main(void)
 {
     SYSCFG_DL_init();
-    while (1)
-    {
-        DL_GPIO_clearPins(LED1_PORT, LED1_PIN_22_PIN);// 输出低电平
-        delay_ms(1000);                               // 延时大概1S
-        DL_GPIO_setPins(LED1_PORT, LED1_PIN_22_PIN);  // 输出高电平
-        delay_ms(1000);                               // 延时大概1S
-    }
+    xTaskCreate(vBlinkTask, "Blink", 128, NULL, 1, NULL);
+    vTaskStartScheduler();
+    for (;;) {}
 }

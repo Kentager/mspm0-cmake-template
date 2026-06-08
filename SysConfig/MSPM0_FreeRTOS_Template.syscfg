@@ -3,9 +3,14 @@
  * via the GUI or CLI. Run CLI with '--help' for additional information on how to override these arguments.
  * @cliArgs --board "/ti/boards/LP_MSPM0G3507" --product "mspm0_sdk@2.10.00.04"
  * @v2CliArgs --board "/ti/boards/LP_MSPM0G3507" --product "mspm0_sdk@2.10.00.04"
- * @versions {"tool":"1.27.0+4565"}
+ * @versions {"tool":"1.27.1+4634"}
  */
+scripting.excludeFromBuild("device_linker.cmd");
 scripting.excludeFromBuild("device_linker.lds");
+scripting.excludeFromBuild("device.opt");
+scripting.excludeFromBuild("device.cmd.genlibs");
+scripting.excludeFromBuild("device.lds.genlibs");
+scripting.excludeFromBuild("Event.dot");
 
 /**
  * Import the modules used in this configuration.
@@ -22,44 +27,22 @@ const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
 const divider9       = system.clockTree["UDIV"];
 divider9.divideValue = 2;
 
-const gate7  = system.clockTree["MFCLKGATE"];
-gate7.enable = true;
-
-const gate8  = system.clockTree["MFPCLKGATE"];
-gate8.enable = true;
-
 const multiplier2         = system.clockTree["PLL_QDIV"];
 multiplier2.multiplyValue = 4;
 
-const mux4       = system.clockTree["EXHFMUX"];
-mux4.inputSelect = "EXHFMUX_XTAL";
-
 const mux8       = system.clockTree["HSCLKMUX"];
 mux8.inputSelect = "HSCLKMUX_SYSPLL0";
-
-const mux12       = system.clockTree["SYSPLLMUX"];
-mux12.inputSelect = "zSYSPLLMUX_HFCLK";
-
-const pinFunction4                        = system.clockTree["HFXT"];
-pinFunction4.enable                       = true;
-pinFunction4.inputFreq                    = 40;
-pinFunction4.peripheral.$assign           = "SYSCTL";
-pinFunction4.peripheral.hfxInPin.$assign  = "j17_expansion.4";
-pinFunction4.peripheral.hfxOutPin.$assign = "j17_expansion.5";
 
 Board.peripheral.$assign          = "DEBUGSS";
 Board.peripheral.swclkPin.$assign = "j25_expansion.16";
 Board.peripheral.swdioPin.$assign = "j25_expansion.14";
 
-GPIO1.$name                              = "LED1";
-GPIO1.port                               = "PORTB";
-GPIO1.associatedPins[0].$name            = "PIN_22";
-GPIO1.associatedPins[0].internalResistor = "PULL_DOWN";
-GPIO1.associatedPins[0].assignedPin      = "22";
+GPIO1.$name                         = "LED";
+GPIO1.port                          = "PORTA";
+GPIO1.associatedPins[0].$name       = "PIN_24";
+GPIO1.associatedPins[0].assignedPin = "24";
 
-SYSCTL.clockTreeEn           = true;
-SYSCTL.validateClkStatus     = true;
-SYSCTL.forceDefaultClkConfig = true;
+SYSCTL.clockTreeEn = true;
 
 ProjectConfig.genLibIQVersion    = "MATHACL";
 ProjectConfig.migrationCondition = true;
@@ -69,4 +52,4 @@ ProjectConfig.migrationCondition = true;
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-GPIO1.associatedPins[0].pin.$suggestSolution = "j19_expansion.5";
+GPIO1.associatedPins[0].pin.$suggestSolution = "boosterpack.27";

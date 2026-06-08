@@ -34,10 +34,10 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 #######################
 # 设置SDK路径
 #######################
-set(SYSCONFIG_PATH  ${CMAKE_SOURCE_DIR}/SysConfig)
+set(SYSCONFIG_PATH  ${CMAKE_CURRENT_LIST_DIR}/SysConfig)
 
 # 这一行要看你用SDK的安装路径去更改，改成你用的SDK的路径
-set(MSPM0_SDK_PATH "D:/TI/mspm0_sdk_2_10_00_04")
+set(MSPM0_SDK_PATH "E:/Ti/mspm0_sdk_2_10_00_04")
 
 #######################
 # 设置编译选项

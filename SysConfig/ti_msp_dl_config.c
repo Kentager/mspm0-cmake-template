@@ -50,7 +50,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_GPIO_init();
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
-    SYSCFG_DL_SYSCTL_CLK_init();
 }
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
@@ -66,15 +65,10 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
 
-    DL_GPIO_initPeripheralAnalogFunction(GPIO_HFXIN_IOMUX);
-    DL_GPIO_initPeripheralAnalogFunction(GPIO_HFXOUT_IOMUX);
+    DL_GPIO_initDigitalOutput(LED_PIN_24_IOMUX);
 
-    DL_GPIO_initDigitalOutputFeatures(LED1_PIN_22_IOMUX,
-		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_DOWN,
-		 DL_GPIO_DRIVE_STRENGTH_LOW, DL_GPIO_HIZ_DISABLE);
-
-    DL_GPIO_clearPins(LED1_PORT, LED1_PIN_22_PIN);
-    DL_GPIO_enableOutput(LED1_PORT, LED1_PIN_22_PIN);
+    DL_GPIO_clearPins(LED_PORT, LED_PIN_24_PIN);
+    DL_GPIO_enableOutput(LED_PORT, LED_PIN_24_PIN);
 
 }
 
@@ -88,7 +82,7 @@ static const DL_SYSCTL_SYSPLLConfig gSYSPLLConfig = {
 	.enableCLK1             = DL_SYSCTL_SYSPLL_CLK1_DISABLE,
 	.enableCLK0             = DL_SYSCTL_SYSPLL_CLK0_ENABLE,
 	.sysPLLMCLK             = DL_SYSCTL_SYSPLL_MCLK_CLK0,
-	.sysPLLRef              = DL_SYSCTL_SYSPLL_REF_HFCLK,
+	.sysPLLRef              = DL_SYSCTL_SYSPLL_REF_SYSOSC,
 	.qDiv                   = 3,
 	.pDiv                   = DL_SYSCTL_SYSPLL_PDIV_1
 };
@@ -125,7 +119,7 @@ SYSCONFIG_WEAK bool SYSCFG_DL_SYSCTL_SYSPLL_init(void)
     /* Measuring SYSPLL Source */
     DL_SYSCTL_configFCC(DL_SYSCTL_FCC_TRIG_TYPE_RISE_RISE,
                         DL_SYSCTL_FCC_TRIG_SOURCE_LFCLK,
-                        DL_SYSCTL_FCC_CLOCK_SOURCE_HFCLK);
+                        DL_SYSCTL_FCC_CLOCK_SOURCE_SYSOSC);
     /* Get SYSPLL frequency using FCC */
     fccTimeOutCounter = 0;
     DL_SYSCTL_startFCC();
@@ -161,10 +155,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 
     
 	DL_SYSCTL_setSYSOSCFreq(DL_SYSCTL_SYSOSC_FREQ_BASE);
-	/* Set default configuration */
-	DL_SYSCTL_disableHFXT();
-	DL_SYSCTL_disableSYSPLL();
-    DL_SYSCTL_setHFCLKSourceHFXTParams(DL_SYSCTL_HFXT_RANGE_32_48_MHZ,0, false);
     DL_SYSCTL_configSYSPLL((DL_SYSCTL_SYSPLLConfig *) &gSYSPLLConfig);
 
     /*
@@ -185,28 +175,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
         while ((DL_SYSCTL_getClockStatus() & SYSCTL_CLKSTATUS_SYSPLLGOOD_MASK) != DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD){}
     }
     DL_SYSCTL_setULPCLKDivider(DL_SYSCTL_ULPCLK_DIV_2);
-    DL_SYSCTL_enableMFCLK();
-    DL_SYSCTL_enableMFPCLK();
-	DL_SYSCTL_setMFPCLKSource(DL_SYSCTL_MFPCLK_SOURCE_SYSOSC);
     DL_SYSCTL_setMCLKSource(SYSOSC, HSCLK, DL_SYSCTL_HSCLK_SOURCE_SYSPLL);
 
 }
-SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_CLK_init(void) {
-    while ((DL_SYSCTL_getClockStatus() & (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
-	       != (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
-	{
-		/* Ensure that clocks are in default POR configuration before initialization.
-		* Additionally once LFXT is enabled, the internal LFOSC is disabled, and cannot
-		* be re-enabled other than by executing a BOOTRST. */
-		;
-	}
-}
-
 
 

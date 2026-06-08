@@ -73,12 +73,8 @@ extern "C" {
 #define POWER_STARTUP_DELAY                                                (16)
 
 
-#define GPIO_HFXT_PORT                                                     GPIOA
-#define GPIO_HFXIN_PIN                                             DL_GPIO_PIN_5
-#define GPIO_HFXIN_IOMUX                                         (IOMUX_PINCM10)
-#define GPIO_HFXOUT_PIN                                            DL_GPIO_PIN_6
-#define GPIO_HFXOUT_IOMUX                                        (IOMUX_PINCM11)
-#define CPUCLK_FREQ                                                     80000000
+
+#define CPUCLK_FREQ                                                     64000000
 /* Defines for SYSPLL_ERR_01 Workaround */
 /* Represent 1.000 as 1000 */
 #define FLOAT_TO_INT_SCALE                                               (1000U)
@@ -90,12 +86,12 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 
 
 
-/* Port definition for Pin Group LED1 */
-#define LED1_PORT                                                        (GPIOB)
+/* Port definition for Pin Group LED */
+#define LED_PORT                                                         (GPIOA)
 
-/* Defines for PIN_22: GPIOB.22 with pinCMx 50 on package pin 21 */
-#define LED1_PIN_22_PIN                                         (DL_GPIO_PIN_22)
-#define LED1_PIN_22_IOMUX                                        (IOMUX_PINCM50)
+/* Defines for PIN_24: GPIOA.24 with pinCMx 54 on package pin 25 */
+#define LED_PIN_24_PIN                                          (DL_GPIO_PIN_24)
+#define LED_PIN_24_IOMUX                                         (IOMUX_PINCM54)
 
 
 /* clang-format on */
@@ -104,7 +100,6 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
-void SYSCFG_DL_SYSCTL_CLK_init(void);
 
 bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 
