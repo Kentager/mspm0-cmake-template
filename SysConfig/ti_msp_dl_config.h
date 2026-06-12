@@ -85,13 +85,112 @@ extern "C" {
 bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 
 
+/* Defines for PWM_0 */
+#define PWM_0_INST                                                         TIMA0
+#define PWM_0_INST_IRQHandler                                   TIMA0_IRQHandler
+#define PWM_0_INST_INT_IRQN                                     (TIMA0_INT_IRQn)
+#define PWM_0_INST_CLK_FREQ                                             64000000
+/* GPIO defines for channel 0 */
+#define GPIO_PWM_0_C0_PORT                                                 GPIOA
+#define GPIO_PWM_0_C0_PIN                                          DL_GPIO_PIN_0
+#define GPIO_PWM_0_C0_IOMUX                                       (IOMUX_PINCM1)
+#define GPIO_PWM_0_C0_IOMUX_FUNC                      IOMUX_PINCM1_PF_TIMA0_CCP0
+#define GPIO_PWM_0_C0_IDX                                    DL_TIMER_CC_0_INDEX
+/* GPIO defines for channel 1 */
+#define GPIO_PWM_0_C1_PORT                                                 GPIOA
+#define GPIO_PWM_0_C1_PIN                                          DL_GPIO_PIN_1
+#define GPIO_PWM_0_C1_IOMUX                                       (IOMUX_PINCM2)
+#define GPIO_PWM_0_C1_IOMUX_FUNC                      IOMUX_PINCM2_PF_TIMA0_CCP1
+#define GPIO_PWM_0_C1_IDX                                    DL_TIMER_CC_1_INDEX
+
+
+
+
+/* Defines for I2C_1 */
+#define I2C_1_INST                                                          I2C1
+#define I2C_1_INST_IRQHandler                                    I2C1_IRQHandler
+#define I2C_1_INST_INT_IRQN                                        I2C1_INT_IRQn
+#define GPIO_I2C_1_SDA_PORT                                                GPIOA
+#define GPIO_I2C_1_SDA_PIN                                        DL_GPIO_PIN_16
+#define GPIO_I2C_1_IOMUX_SDA                                     (IOMUX_PINCM38)
+#define GPIO_I2C_1_IOMUX_SDA_FUNC                      IOMUX_PINCM38_PF_I2C1_SDA
+#define GPIO_I2C_1_SCL_PORT                                                GPIOA
+#define GPIO_I2C_1_SCL_PIN                                        DL_GPIO_PIN_17
+#define GPIO_I2C_1_IOMUX_SCL                                     (IOMUX_PINCM39)
+#define GPIO_I2C_1_IOMUX_SCL_FUNC                      IOMUX_PINCM39_PF_I2C1_SCL
+
+/* Defines for I2C_0 */
+#define I2C_0_INST                                                          I2C0
+#define I2C_0_INST_IRQHandler                                    I2C0_IRQHandler
+#define I2C_0_INST_INT_IRQN                                        I2C0_INT_IRQn
+#define GPIO_I2C_0_SDA_PORT                                                GPIOA
+#define GPIO_I2C_0_SDA_PIN                                        DL_GPIO_PIN_10
+#define GPIO_I2C_0_IOMUX_SDA                                     (IOMUX_PINCM21)
+#define GPIO_I2C_0_IOMUX_SDA_FUNC                      IOMUX_PINCM21_PF_I2C0_SDA
+#define GPIO_I2C_0_SCL_PORT                                                GPIOA
+#define GPIO_I2C_0_SCL_PIN                                        DL_GPIO_PIN_11
+#define GPIO_I2C_0_IOMUX_SCL                                     (IOMUX_PINCM22)
+#define GPIO_I2C_0_IOMUX_SCL_FUNC                      IOMUX_PINCM22_PF_I2C0_SCL
+
+
+/* Defines for UART_0 */
+#define UART_0_INST                                                        UART2
+#define UART_0_INST_FREQUENCY                                           32000000
+#define UART_0_INST_IRQHandler                                  UART2_IRQHandler
+#define UART_0_INST_INT_IRQN                                      UART2_INT_IRQn
+#define GPIO_UART_0_RX_PORT                                                GPIOA
+#define GPIO_UART_0_TX_PORT                                                GPIOA
+#define GPIO_UART_0_RX_PIN                                        DL_GPIO_PIN_22
+#define GPIO_UART_0_TX_PIN                                        DL_GPIO_PIN_21
+#define GPIO_UART_0_IOMUX_RX                                     (IOMUX_PINCM47)
+#define GPIO_UART_0_IOMUX_TX                                     (IOMUX_PINCM46)
+#define GPIO_UART_0_IOMUX_RX_FUNC                      IOMUX_PINCM47_PF_UART2_RX
+#define GPIO_UART_0_IOMUX_TX_FUNC                      IOMUX_PINCM46_PF_UART2_TX
+#define UART_0_BAUD_RATE                                                  (9600)
+#define UART_0_IBRD_32_MHZ_9600_BAUD                                       (208)
+#define UART_0_FBRD_32_MHZ_9600_BAUD                                        (21)
+/* Defines for UART_1 */
+#define UART_1_INST                                                        UART3
+#define UART_1_INST_FREQUENCY                                           64000000
+#define UART_1_INST_IRQHandler                                  UART3_IRQHandler
+#define UART_1_INST_INT_IRQN                                      UART3_INT_IRQn
+#define GPIO_UART_1_RX_PORT                                                GPIOA
+#define GPIO_UART_1_TX_PORT                                                GPIOA
+#define GPIO_UART_1_RX_PIN                                        DL_GPIO_PIN_13
+#define GPIO_UART_1_TX_PIN                                        DL_GPIO_PIN_14
+#define GPIO_UART_1_IOMUX_RX                                     (IOMUX_PINCM35)
+#define GPIO_UART_1_IOMUX_TX                                     (IOMUX_PINCM36)
+#define GPIO_UART_1_IOMUX_RX_FUNC                      IOMUX_PINCM35_PF_UART3_RX
+#define GPIO_UART_1_IOMUX_TX_FUNC                      IOMUX_PINCM36_PF_UART3_TX
+#define UART_1_BAUD_RATE                                                  (9600)
+#define UART_1_IBRD_64_MHZ_9600_BAUD                                       (416)
+#define UART_1_FBRD_64_MHZ_9600_BAUD                                        (43)
+
+
+
+
 
 /* Port definition for Pin Group LED */
-#define LED_PORT                                                         (GPIOA)
+#define LED_PORT                                                         (GPIOB)
 
-/* Defines for PIN_24: GPIOA.24 with pinCMx 54 on package pin 25 */
-#define LED_PIN_24_PIN                                          (DL_GPIO_PIN_24)
-#define LED_PIN_24_IOMUX                                         (IOMUX_PINCM54)
+/* Defines for PIN_2: GPIOB.2 with pinCMx 15 on package pin 50 */
+#define LED_PIN_2_PIN                                            (DL_GPIO_PIN_2)
+#define LED_PIN_2_IOMUX                                          (IOMUX_PINCM15)
+/* Port definition for Pin Group IN */
+#define IN_PORT                                                          (GPIOA)
+
+/* Defines for LEFT_IN1: GPIOA.31 with pinCMx 6 on package pin 39 */
+#define IN_LEFT_IN1_PIN                                         (DL_GPIO_PIN_31)
+#define IN_LEFT_IN1_IOMUX                                         (IOMUX_PINCM6)
+/* Defines for LEFT_IN2: GPIOA.28 with pinCMx 3 on package pin 35 */
+#define IN_LEFT_IN2_PIN                                         (DL_GPIO_PIN_28)
+#define IN_LEFT_IN2_IOMUX                                         (IOMUX_PINCM3)
+/* Defines for RIGHT_IN1: GPIOA.9 with pinCMx 20 on package pin 55 */
+#define IN_RIGHT_IN1_PIN                                         (DL_GPIO_PIN_9)
+#define IN_RIGHT_IN1_IOMUX                                       (IOMUX_PINCM20)
+/* Defines for RIGHT_IN2: GPIOA.8 with pinCMx 19 on package pin 54 */
+#define IN_RIGHT_IN2_PIN                                         (DL_GPIO_PIN_8)
+#define IN_RIGHT_IN2_IOMUX                                       (IOMUX_PINCM19)
 
 
 /* clang-format on */
@@ -102,8 +201,15 @@ void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
 
 bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
+void SYSCFG_DL_PWM_0_init(void);
+void SYSCFG_DL_I2C_1_init(void);
+void SYSCFG_DL_I2C_0_init(void);
+void SYSCFG_DL_UART_0_init(void);
+void SYSCFG_DL_UART_1_init(void);
 
 
+bool SYSCFG_DL_saveConfiguration(void);
+bool SYSCFG_DL_restoreConfiguration(void);
 
 #ifdef __cplusplus
 }
