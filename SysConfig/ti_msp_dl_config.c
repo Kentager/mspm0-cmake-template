@@ -156,16 +156,44 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(IN_RIGHT_IN2_IOMUX);
 
-    DL_GPIO_clearPins(IN_PORT, IN_LEFT_IN1_PIN |
+    DL_GPIO_initDigitalInputFeatures(ENC_LEFT_ENA_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_NONE,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalInputFeatures(ENC_LEFT_ENB_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_NONE,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalInputFeatures(ENC_RIGHT_ENA_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_NONE,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalInputFeatures(ENC_RIGHT_ENB_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_NONE,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_clearPins(GPIOA, IN_LEFT_IN1_PIN |
 		IN_LEFT_IN2_PIN |
 		IN_RIGHT_IN1_PIN |
 		IN_RIGHT_IN2_PIN);
-    DL_GPIO_enableOutput(IN_PORT, IN_LEFT_IN1_PIN |
+    DL_GPIO_enableOutput(GPIOA, IN_LEFT_IN1_PIN |
 		IN_LEFT_IN2_PIN |
 		IN_RIGHT_IN1_PIN |
 		IN_RIGHT_IN2_PIN);
-    DL_GPIO_clearPins(LED_PORT, LED_PIN_2_PIN);
-    DL_GPIO_enableOutput(LED_PORT, LED_PIN_2_PIN);
+    DL_GPIO_setLowerPinsPolarity(GPIOA, DL_GPIO_PIN_2_EDGE_RISE_FALL |
+		DL_GPIO_PIN_7_EDGE_RISE_FALL);
+    DL_GPIO_clearInterruptStatus(GPIOA, ENC_LEFT_ENA_PIN |
+		ENC_LEFT_ENB_PIN);
+    DL_GPIO_enableInterrupt(GPIOA, ENC_LEFT_ENA_PIN |
+		ENC_LEFT_ENB_PIN);
+    DL_GPIO_clearPins(GPIOB, LED_PIN_2_PIN);
+    DL_GPIO_enableOutput(GPIOB, LED_PIN_2_PIN);
+    DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_6_EDGE_RISE_FALL |
+		DL_GPIO_PIN_7_EDGE_RISE_FALL);
+    DL_GPIO_clearInterruptStatus(GPIOB, ENC_RIGHT_ENA_PIN |
+		ENC_RIGHT_ENB_PIN);
+    DL_GPIO_enableInterrupt(GPIOB, ENC_RIGHT_ENA_PIN |
+		ENC_RIGHT_ENB_PIN);
 
 }
 
@@ -386,11 +414,11 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_0_init(void)
     DL_UART_Main_init(UART_0_INST, (DL_UART_Main_Config *) &gUART_0Config);
     /*
      * Configure baud rate by setting oversampling and baud rate divisors.
-     *  Target baud rate: 9600
-     *  Actual baud rate: 9600.24
+     *  Target baud rate: 115200
+     *  Actual baud rate: 115211.52
      */
     DL_UART_Main_setOversampling(UART_0_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(UART_0_INST, UART_0_IBRD_32_MHZ_9600_BAUD, UART_0_FBRD_32_MHZ_9600_BAUD);
+    DL_UART_Main_setBaudRateDivisor(UART_0_INST, UART_0_IBRD_32_MHZ_115200_BAUD, UART_0_FBRD_32_MHZ_115200_BAUD);
 
 
 
@@ -417,11 +445,11 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_1_init(void)
     DL_UART_Main_init(UART_1_INST, (DL_UART_Main_Config *) &gUART_1Config);
     /*
      * Configure baud rate by setting oversampling and baud rate divisors.
-     *  Target baud rate: 9600
-     *  Actual baud rate: 9599.88
+     *  Target baud rate: 115200
+     *  Actual baud rate: 115211.52
      */
     DL_UART_Main_setOversampling(UART_1_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(UART_1_INST, UART_1_IBRD_64_MHZ_9600_BAUD, UART_1_FBRD_64_MHZ_9600_BAUD);
+    DL_UART_Main_setBaudRateDivisor(UART_1_INST, UART_1_IBRD_64_MHZ_115200_BAUD, UART_1_FBRD_64_MHZ_115200_BAUD);
 
 
 

@@ -95,15 +95,18 @@ void Motor_SetSpeed(motor_t *motor, int16_t speed)
     /* 获取通道索引 */
     uint32_t cc_idx = (motor == &motor_left) ? MOTOR_L_PWM_IDX : MOTOR_R_PWM_IDX;
 
+    /* PWM 硬件极性反转：compare = (PERIOD - speed) 才能得到正比占空比 */
+    uint32_t compare = (uint32_t)(MOTOR_PWM_PERIOD - (speed > 0 ? speed : -speed));
+
     if (speed > 0) {
         Motor_SetDir(motor, MOTOR_DIR_FORWARD);
-        DL_TimerA_setCaptureCompareValue(PWM_0_INST, (uint32_t)speed, cc_idx);
+        DL_TimerA_setCaptureCompareValue(PWM_0_INST, compare, cc_idx);
     } else if (speed < 0) {
         Motor_SetDir(motor, MOTOR_DIR_BACKWARD);
-        DL_TimerA_setCaptureCompareValue(PWM_0_INST, (uint32_t)(-speed), cc_idx);
+        DL_TimerA_setCaptureCompareValue(PWM_0_INST, compare, cc_idx);
     } else {
         /* speed == 0：占空比归零，但不改方向，让 Update 继续跟踪目标 */
-        DL_TimerA_setCaptureCompareValue(PWM_0_INST, 0, cc_idx);
+        DL_TimerA_setCaptureCompareValue(PWM_0_INST, (uint32_t)MOTOR_PWM_PERIOD, cc_idx);
         Motor_SetDir(motor, MOTOR_DIR_STOP);
     }
 
@@ -139,6 +142,14 @@ void Motor_Update(void)
 
     for (int i = 0; i < 2; i++) {
         motor_t *m = motors[i];
+
+        /* 斜坡跟踪：逐步调整 speed 到 target_speed */
+        int16_t diff = m->target_speed - m->speed;
+        if (diff > 0) {
+            m->speed += (diff > 50) ? 50 : diff;  /* 每次最多增加 10 */
+        } else if (diff < 0) {
+            m->speed -= (diff < -50) ? 50 : -diff; /* 每次最多减少 10 */
+        }
 
         /* 应用到硬件 */
         Motor_SetSpeed(m, m->speed);

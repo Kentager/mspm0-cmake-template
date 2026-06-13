@@ -146,9 +146,9 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define GPIO_UART_0_IOMUX_TX                                     (IOMUX_PINCM46)
 #define GPIO_UART_0_IOMUX_RX_FUNC                      IOMUX_PINCM47_PF_UART2_RX
 #define GPIO_UART_0_IOMUX_TX_FUNC                      IOMUX_PINCM46_PF_UART2_TX
-#define UART_0_BAUD_RATE                                                  (9600)
-#define UART_0_IBRD_32_MHZ_9600_BAUD                                       (208)
-#define UART_0_FBRD_32_MHZ_9600_BAUD                                        (21)
+#define UART_0_BAUD_RATE                                                (115200)
+#define UART_0_IBRD_32_MHZ_115200_BAUD                                      (17)
+#define UART_0_FBRD_32_MHZ_115200_BAUD                                      (23)
 /* Defines for UART_1 */
 #define UART_1_INST                                                        UART3
 #define UART_1_INST_FREQUENCY                                           64000000
@@ -162,9 +162,9 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define GPIO_UART_1_IOMUX_TX                                     (IOMUX_PINCM36)
 #define GPIO_UART_1_IOMUX_RX_FUNC                      IOMUX_PINCM35_PF_UART3_RX
 #define GPIO_UART_1_IOMUX_TX_FUNC                      IOMUX_PINCM36_PF_UART3_TX
-#define UART_1_BAUD_RATE                                                  (9600)
-#define UART_1_IBRD_64_MHZ_9600_BAUD                                       (416)
-#define UART_1_FBRD_64_MHZ_9600_BAUD                                        (43)
+#define UART_1_BAUD_RATE                                                (115200)
+#define UART_1_IBRD_64_MHZ_115200_BAUD                                      (34)
+#define UART_1_FBRD_64_MHZ_115200_BAUD                                      (46)
 
 
 
@@ -191,6 +191,32 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 /* Defines for RIGHT_IN2: GPIOA.8 with pinCMx 19 on package pin 54 */
 #define IN_RIGHT_IN2_PIN                                         (DL_GPIO_PIN_8)
 #define IN_RIGHT_IN2_IOMUX                                       (IOMUX_PINCM19)
+/* Defines for LEFT_ENA: GPIOA.2 with pinCMx 7 on package pin 42 */
+#define ENC_LEFT_ENA_PORT                                                (GPIOA)
+// pins affected by this interrupt request:["LEFT_ENA","LEFT_ENB"]
+#define ENC_GPIOA_INT_IRQN                                      (GPIOA_INT_IRQn)
+#define ENC_GPIOA_INT_IIDX                      (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
+#define ENC_LEFT_ENA_IIDX                                    (DL_GPIO_IIDX_DIO2)
+#define ENC_LEFT_ENA_PIN                                         (DL_GPIO_PIN_2)
+#define ENC_LEFT_ENA_IOMUX                                        (IOMUX_PINCM7)
+/* Defines for LEFT_ENB: GPIOA.7 with pinCMx 14 on package pin 49 */
+#define ENC_LEFT_ENB_PORT                                                (GPIOA)
+#define ENC_LEFT_ENB_IIDX                                    (DL_GPIO_IIDX_DIO7)
+#define ENC_LEFT_ENB_PIN                                         (DL_GPIO_PIN_7)
+#define ENC_LEFT_ENB_IOMUX                                       (IOMUX_PINCM14)
+/* Defines for RIGHT_ENA: GPIOB.6 with pinCMx 23 on package pin 58 */
+#define ENC_RIGHT_ENA_PORT                                               (GPIOB)
+// pins affected by this interrupt request:["RIGHT_ENA","RIGHT_ENB"]
+#define ENC_GPIOB_INT_IRQN                                      (GPIOB_INT_IRQn)
+#define ENC_GPIOB_INT_IIDX                      (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
+#define ENC_RIGHT_ENA_IIDX                                   (DL_GPIO_IIDX_DIO6)
+#define ENC_RIGHT_ENA_PIN                                        (DL_GPIO_PIN_6)
+#define ENC_RIGHT_ENA_IOMUX                                      (IOMUX_PINCM23)
+/* Defines for RIGHT_ENB: GPIOB.7 with pinCMx 24 on package pin 59 */
+#define ENC_RIGHT_ENB_PORT                                               (GPIOB)
+#define ENC_RIGHT_ENB_IIDX                                   (DL_GPIO_IIDX_DIO7)
+#define ENC_RIGHT_ENB_PIN                                        (DL_GPIO_PIN_7)
+#define ENC_RIGHT_ENB_IOMUX                                      (IOMUX_PINCM24)
 
 
 /* clang-format on */

@@ -12,19 +12,19 @@
 
 /* 左电机引脚 */
 #define MOTOR_L_PWM_INST PWM_0_INST
-#define MOTOR_L_PWM_IDX GPIO_PWM_0_C0_IDX /* CC0 -> PA0 */
+#define MOTOR_L_PWM_IDX GPIO_PWM_0_C0_IDX 
 #define MOTOR_L_IN1_PORT IN_PORT
-#define MOTOR_L_IN1_PIN IN_LEFT_IN1_PIN /* PA31 */
+#define MOTOR_L_IN1_PIN IN_LEFT_IN1_PIN 
 #define MOTOR_L_IN2_PORT IN_PORT
-#define MOTOR_L_IN2_PIN IN_LEFT_IN2_PIN /* PA28 */
+#define MOTOR_L_IN2_PIN IN_LEFT_IN2_PIN 
 
 /* 右电机引脚 */
 #define MOTOR_R_PWM_INST PWM_0_INST
-#define MOTOR_R_PWM_IDX GPIO_PWM_0_C1_IDX /* CC1 -> PA1 */
+#define MOTOR_R_PWM_IDX GPIO_PWM_0_C1_IDX 
 #define MOTOR_R_IN1_PORT IN_PORT
-#define MOTOR_R_IN1_PIN IN_RIGHT_IN1_PIN /* PA2 */
+#define MOTOR_R_IN1_PIN IN_RIGHT_IN1_PIN 
 #define MOTOR_R_IN2_PORT IN_PORT
-#define MOTOR_R_IN2_PIN IN_RIGHT_IN2_PIN /* PA7 */
+#define MOTOR_R_IN2_PIN IN_RIGHT_IN2_PIN 
 
 /*--------------------类型定义--------------------*/
 
