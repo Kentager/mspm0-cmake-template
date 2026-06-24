@@ -143,13 +143,14 @@ void Motor_Update(void)
     for (int i = 0; i < 2; i++) {
         motor_t *m = motors[i];
 
-        /* 斜坡跟踪：逐步调整 speed 到 target_speed */
-        int16_t diff = m->target_speed - m->speed;
-        if (diff > 0) {
-            m->speed += (diff > 50) ? 50 : diff;  /* 每次最多增加 10 */
-        } else if (diff < 0) {
-            m->speed -= (diff < -50) ? 50 : -diff; /* 每次最多减少 10 */
-        }
+        // /* 斜坡跟踪：逐步调整 speed 到 target_speed */
+        // int16_t diff = m->target_speed - m->speed;
+        // if (diff > 0) {
+        //     m->speed += (diff > 100) ? 100 : diff;  /* 每次最多增加 10 */
+        // } else if (diff < 0) {
+        //     m->speed -= (diff < -100) ? 100 : -diff; /* 每次最多减少 10 */
+        // }
+        m->speed = m->target_speed;
 
         /* 应用到硬件 */
         Motor_SetSpeed(m, m->speed);

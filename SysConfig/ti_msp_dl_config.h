@@ -110,6 +110,7 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define I2C_1_INST                                                          I2C1
 #define I2C_1_INST_IRQHandler                                    I2C1_IRQHandler
 #define I2C_1_INST_INT_IRQN                                        I2C1_INT_IRQn
+#define I2C_1_BUS_SPEED_HZ                                                100000
 #define GPIO_I2C_1_SDA_PORT                                                GPIOA
 #define GPIO_I2C_1_SDA_PIN                                        DL_GPIO_PIN_16
 #define GPIO_I2C_1_IOMUX_SDA                                     (IOMUX_PINCM38)
@@ -123,6 +124,7 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define I2C_0_INST                                                          I2C0
 #define I2C_0_INST_IRQHandler                                    I2C0_IRQHandler
 #define I2C_0_INST_INT_IRQN                                        I2C0_INT_IRQn
+#define I2C_0_BUS_SPEED_HZ                                                100000
 #define GPIO_I2C_0_SDA_PORT                                                GPIOA
 #define GPIO_I2C_0_SDA_PIN                                        DL_GPIO_PIN_10
 #define GPIO_I2C_0_IOMUX_SDA                                     (IOMUX_PINCM21)
@@ -225,6 +227,7 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
+void SYSCFG_DL_SYSCTL_CLK_init(void);
 
 bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 void SYSCFG_DL_PWM_0_init(void);

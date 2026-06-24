@@ -58,6 +58,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_I2C_0_init();
     SYSCFG_DL_UART_0_init();
     SYSCFG_DL_UART_1_init();
+    SYSCFG_DL_SYSCTL_CLK_init();
     /* Ensure backup structures have no valid state */
 	gPWM_0Backup.backupRdy 	= false;
 	gUART_1Backup.backupRdy 	= false;
@@ -300,9 +301,27 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
         while ((DL_SYSCTL_getClockStatus() & SYSCTL_CLKSTATUS_SYSPLLGOOD_MASK) != DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD){}
     }
     DL_SYSCTL_setULPCLKDivider(DL_SYSCTL_ULPCLK_DIV_2);
+    DL_SYSCTL_enableMFCLK();
+    DL_SYSCTL_enableMFPCLK();
+	DL_SYSCTL_setMFPCLKSource(DL_SYSCTL_MFPCLK_SOURCE_SYSOSC);
     DL_SYSCTL_setMCLKSource(SYSOSC, HSCLK, DL_SYSCTL_HSCLK_SOURCE_SYSPLL);
 
 }
+SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_CLK_init(void) {
+    while ((DL_SYSCTL_getClockStatus() & (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
+	       != (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
+	{
+		/* Ensure that clocks are in default POR configuration before initialization.
+		* Additionally once LFXT is enabled, the internal LFOSC is disabled, and cannot
+		* be re-enabled other than by executing a BOOTRST. */
+		;
+	}
+}
+
 
 
 /*
@@ -371,7 +390,17 @@ SYSCONFIG_WEAK void SYSCFG_DL_I2C_1_init(void) {
         DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
     DL_I2C_enableAnalogGlitchFilter(I2C_1_INST);
 
+    /* Configure Controller Mode */
+    DL_I2C_resetControllerTransfer(I2C_1_INST);
+    /* Set frequency to 100000 Hz*/
+    DL_I2C_setTimerPeriod(I2C_1_INST, 31);
+    DL_I2C_setControllerTXFIFOThreshold(I2C_1_INST, DL_I2C_TX_FIFO_LEVEL_EMPTY);
+    DL_I2C_setControllerRXFIFOThreshold(I2C_1_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_1);
+    DL_I2C_enableControllerClockStretching(I2C_1_INST);
 
+
+    /* Enable module */
+    DL_I2C_enableController(I2C_1_INST);
 
 
 }
@@ -388,7 +417,17 @@ SYSCONFIG_WEAK void SYSCFG_DL_I2C_0_init(void) {
         DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
     DL_I2C_enableAnalogGlitchFilter(I2C_0_INST);
 
+    /* Configure Controller Mode */
+    DL_I2C_resetControllerTransfer(I2C_0_INST);
+    /* Set frequency to 100000 Hz*/
+    DL_I2C_setTimerPeriod(I2C_0_INST, 31);
+    DL_I2C_setControllerTXFIFOThreshold(I2C_0_INST, DL_I2C_TX_FIFO_LEVEL_EMPTY);
+    DL_I2C_setControllerRXFIFOThreshold(I2C_0_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_1);
+    DL_I2C_enableControllerClockStretching(I2C_0_INST);
 
+
+    /* Enable module */
+    DL_I2C_enableController(I2C_0_INST);
 
 
 }
