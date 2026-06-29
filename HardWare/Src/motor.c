@@ -5,7 +5,7 @@
 /*--------------------变量定义--------------------*/
 
 motor_t motor_left;
-motor_t motor_right;
+motor_t motor_right; 
 
 /*--------------------内部函数--------------------*/
 
@@ -66,9 +66,11 @@ void Motor_Init(void) {
     motor_left.id = MOTOR_LEFT;
     motor_left.dir  = MOTOR_DIR_STOP;
     motor_left.speed = 0;
+
     motor_right.id = MOTOR_RIGHT;
     motor_right.dir  = MOTOR_DIR_STOP;
     motor_right.speed = 0;
+;
 
     /* 方向引脚已在 SYSCFG_DL_GPIO_init() 中配置好，这里确保初始为制动 */
     Motor_SetDir(&motor_left, MOTOR_DIR_STOP);
@@ -118,15 +120,17 @@ void Motor_SetSpeed(motor_t *motor, int16_t speed)
  * @param motor   电机指针
  * @param target  目标速度 -MOTOR_PWM_PERIOD ~ +MOTOR_PWM_PERIOD
  */
-void Motor_SetTarget(motor_t *motor, int16_t target)
+void Motor_SetTargetSpeed(motor_t *motor, int16_t target)
 {
     // if (target > (int16_t)MOTOR_PWM_PERIOD)
     //     target = (int16_t)MOTOR_PWM_PERIOD;
     // if (target < -(int16_t)MOTOR_PWM_PERIOD)
     //     target = -(int16_t)MOTOR_PWM_PERIOD;
-
+    
     motor->target_speed = target;
 }
+
+
 
 /**
  * @brief 斜坡更新，周期调用使实际速度平滑跟踪目标
@@ -138,19 +142,21 @@ void Motor_SetTarget(motor_t *motor, int16_t target)
  */
 void Motor_Update(void)
 {
+    
     motor_t *motors[2] = { &motor_left, &motor_right };
 
     for (int i = 0; i < 2; i++) {
         motor_t *m = motors[i];
 
-        // /* 斜坡跟踪：逐步调整 speed 到 target_speed */
+        /* 斜坡跟踪：逐步调整 speed 到 target_speed */
         // int16_t diff = m->target_speed - m->speed;
         // if (diff > 0) {
         //     m->speed += (diff > 100) ? 100 : diff;  /* 每次最多增加 10 */
         // } else if (diff < 0) {
         //     m->speed -= (diff < -100) ? 100 : -diff; /* 每次最多减少 10 */
         // }
-        m->speed = m->target_speed;
+        // m->speed = m->target_speed;
+        
 
         /* 应用到硬件 */
         Motor_SetSpeed(m, m->speed);

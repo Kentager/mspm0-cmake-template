@@ -190,4 +190,6 @@ void MPU9250_WriteReg(uint8_t reg, uint8_t value);
  */
 uint8_t MPU9250_ReadReg(uint8_t reg);
 
+void MPU9250_CalibrateGyro(void);
+
 #endif /* __MPU9250_H */

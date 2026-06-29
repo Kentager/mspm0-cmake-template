@@ -7,6 +7,8 @@ static float accel_scale;   /* 加速度灵敏度，原始值 * accel_scale = g 
 static float gyro_scale;    /* 陀螺仪灵敏度，原始值 * gyro_scale = dps */
 static float mag_adjust[3]; /* AK8963 出厂灵敏度校准系数 */
 
+static float gyro_bias[3] = {0, 0, 0};
+static bool gyro_calibrated = false;
 /* I2C 超时（循环次数） */
 #define I2C_TIMEOUT     10000
 
@@ -187,13 +189,13 @@ bool MPU9250_Init(void)
     /* 数字低通滤波：陀螺仪带宽 41 Hz */
     MPU9250_WriteReg(MPU9250_REG_CONFIG, MPU9250_DLPF_41HZ);
 
-    /* 陀螺仪量程：±2000 dps */
-    MPU9250_WriteReg(MPU9250_REG_GYRO_CONFIG, MPU9250_GYRO_FS_2000DPS);
-    gyro_scale = 1.0f / 16.4f;  /* 2000/32768 */
+    /* 陀螺仪量程：±250 dps */
+    MPU9250_WriteReg(MPU9250_REG_GYRO_CONFIG, MPU9250_GYRO_FS_250DPS);
+    gyro_scale = 1.0f / 131.0f;  /* 250/32768 */
 
     /* 加计量程：±8g */
-    MPU9250_WriteReg(MPU9250_REG_ACCEL_CONFIG, MPU9250_ACCEL_FS_8G);
-    accel_scale = 1.0f / 4096.0f; /* 8/32768 */
+    MPU9250_WriteReg(MPU9250_REG_ACCEL_CONFIG, MPU9250_ACCEL_FS_2G);
+    accel_scale = 1.0f / 16384.0f; /* 2/32768 */
 
     /* 加计数字低通滤波：41 Hz */
     MPU9250_WriteReg(MPU9250_REG_ACCEL_CONFIG2, MPU9250_DLPF_41HZ);
@@ -316,12 +318,47 @@ void MPU9250_ReadAll(MPU9250_Data_t *data)
     data->accel.y = (float)raw_ay * accel_scale;
     data->accel.z = (float)raw_az * accel_scale;
 
-    data->gyro.x = (float)raw_gx * gyro_scale;
-    data->gyro.y = (float)raw_gy * gyro_scale;
-    data->gyro.z = (float)raw_gz * gyro_scale;
+    if (gyro_calibrated) {
+      
+        data->gyro.x = (float)raw_gx * gyro_scale - gyro_bias[0];
+        data->gyro.y = (float)raw_gy * gyro_scale - gyro_bias[1];
+        data->gyro.z = (float)raw_gz * gyro_scale - gyro_bias[2];
+    } else {
+        data->gyro.x = (float)raw_gx * gyro_scale;
+        data->gyro.y = (float)raw_gy * gyro_scale;
+        data->gyro.z = (float)raw_gz * gyro_scale;
+    }
 
     data->temperature = (float)raw_t / 333.87f + 21.0f;
 
     /* 读取磁力计 */
     MPU9250_ReadMag(&data->mag);
+}
+
+void MPU9250_CalibrateGyro(void) {
+    MPU9250_Axes_t gyro;
+    float sum[3] = {0, 0, 0};
+    int count = 0;
+    
+    UART_SendData((uint8_t *)"Calibrating gyro (keep still)...\r\n", 36);
+    
+    // 采样500次，传感器必须静止
+    for (int i = 0; i < 500; i++) {
+        MPU9250_ReadGyro(&gyro);
+        sum[0] += gyro.x;
+        sum[1] += gyro.y;
+        sum[2] += gyro.z;
+        count++;
+        for (volatile uint32_t j = 0; j < 5000; j++);  // 5ms延时
+    }
+    
+    gyro_bias[0] = sum[0] / count;
+    gyro_bias[1] = sum[1] / count;
+    gyro_bias[2] = sum[2] / count;
+    gyro_calibrated = true;
+    
+    char dbg[64];
+    int len = snprintf(dbg, sizeof(dbg), "Gyro bias: %.3f, %.3f, %.3f °/s\r\n", 
+                       gyro_bias[0], gyro_bias[1], gyro_bias[2]);
+    UART_SendData((uint8_t *)dbg, (uint16_t)len);
 }

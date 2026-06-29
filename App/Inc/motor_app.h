@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+
 /*--------------------初始化--------------------*/
 
 /**
@@ -22,6 +23,8 @@ void Motor_App_Init(void);
  */
 void Motor_App_Update(void);
 
+void Motor_App_YawUpdate(float yaw);
+
 /*--------------------速度控制--------------------*/
 
 /**
@@ -30,6 +33,14 @@ void Motor_App_Update(void);
  * @param right_m_s  右电机目标速度 m/s
  */
 void Motor_App_SetSpeed(float left_m_s, float right_m_s);
+
+/*--------------------角度控制--------------------*/
+
+/**
+ * @brief 设置目标角度（连续行驶，不限距离）
+ * @param yaw  左电机目标角度（-179 ~ +180, 逆时针为正）
+ */
+void Motor_App_SetTargetYaw(float yaw);
 
 /*--------------------距离控制--------------------*/
 

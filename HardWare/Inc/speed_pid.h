@@ -23,6 +23,7 @@ typedef struct {
 
     /* 输出 */
     float output;
+
 } Speed_PID_t;
 
 /*--------------------全局变量--------------------*/

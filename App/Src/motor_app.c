@@ -29,6 +29,9 @@ static float dist_target_right;     /* 右电机目标距离 m */
 static float dist_start_left;       /* 左电机起始里程 m */
 static float dist_start_right;      /* 右电机起始里程 m */
 
+static float current_yaw;           /* 当前角度 */
+static float target_yaw;            /* 目标角度 */
+
 /*--------------------内部函数--------------------*/
 
 /**
@@ -53,12 +56,16 @@ void Motor_App_Init(void)
     Speed_PID_Init();
 
     target_left_ms    = 0.0f;
-    target_right_ms   = 0.0f;
+    target_right_ms = 0.0f;
+    
     distance_mode     = false;
     dist_target_left  = 0.0f;
     dist_target_right = 0.0f;
     dist_start_left   = 0.0f;
-    dist_start_right  = 0.0f;
+    dist_start_right = 0.0f;
+
+    current_yaw = 0.0f;
+    target_yaw = 0.0f;
 }
 
 void Motor_App_Update(void)
@@ -92,15 +99,18 @@ void Motor_App_Update(void)
         if (right_reached) target_right_ms = 0.0f;
     }
 
-    /* 3. m/s → 脉冲/采样周期（float 保留精度） */
-    float target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms,  APP_SAMPLE_PERIOD_MS);
-    float target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms, APP_SAMPLE_PERIOD_MS);
+    /* 3. 角度控制 */
+    float yaw_diff = (target_yaw - current_yaw) / 180.0f; /* (目标角度 - 当前角度) / 180度 (-1.0 ~ 1.0) */
+    while(yaw_diff > 1.0f || yaw_diff < -1.0f)yaw_diff = (yaw_diff >1.0f) ? -(yaw_diff - 1.0f) : (yaw_diff < -1.0f) ? -(yaw_diff + 1.0f) : yaw_diff;
+    /* 4. m/s → 脉冲/采样周期（float 保留精度） */
+    float target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.4f,  APP_SAMPLE_PERIOD_MS);
+    float target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.4f, APP_SAMPLE_PERIOD_MS);
 
-    /* 4. PID 计算 */
+    /* 5. PID 计算 */
     float out_l = Speed_PID_Compute(&pid_left,  target_l, actual_l);
     float out_r = Speed_PID_Compute(&pid_right, target_r, actual_r);
 
-    /* 5. 驱动电机（转为 int16 给 PWM） */
+    /* 6. 驱动电机（转为 int16 给 PWM） */
     Motor_SetSpeed(&motor_left,  (int16_t)out_l);
     Motor_SetSpeed(&motor_right, (int16_t)out_r);
 }
@@ -110,10 +120,15 @@ void Motor_App_Update(void)
 void Motor_App_SetSpeed(float left_m_s, float right_m_s)
 {
     distance_mode    = false;
-    target_left_ms   = left_m_s;
-    target_right_ms  = right_m_s;
+    target_left_ms   = -left_m_s;
+    target_right_ms  = -right_m_s;
 }
 
+/*--------------------角度控制--------------------*/
+
+void Motor_App_SetTargetYaw(float yaw) { target_yaw = yaw; }
+
+void Motor_App_YawUpdate(float yaw){ current_yaw = yaw; }
 /*--------------------距离控制--------------------*/
 
 void Motor_App_Drive(float left_m, float right_m, float speed_m_s)

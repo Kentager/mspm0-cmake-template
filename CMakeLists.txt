@@ -33,4 +33,23 @@ add_executable(${CMAKE_PROJECT_NAME}.elf
     ${HARDWARE_SOURCES}
     ${App_SOURCES}
 )
+
+
+# 链接数学库
+target_link_libraries(${CMAKE_PROJECT_NAME}.elf
+    m                          # ← 链接数学库 libm.a
+)
+
+# 确保链接器选项包含数学库（双重保险）
+target_link_options(${CMAKE_PROJECT_NAME}.elf PRIVATE
+    -Wl,--gc-sections
+    -Wl,--print-memory-usage
+    -Wl,-Map=memory.map
+    -lm                        # ← 显式再写一次
+)
+
+# 如果使用 nano.specs，确保数学库正确链接
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
