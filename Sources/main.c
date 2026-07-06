@@ -14,10 +14,30 @@
 
 static MPU9250_Data_t sensor_data;
 
+#define KEY_DEBOUNCE_MS  20U
+
+static TickType_t g_key_last_tick[4] = {0};
+
 static float pitch = 0.0f;
 static float roll = 0.0f;
 static float yaw = 0.0f;
 
+static uint8_t Key_IsAccepted(key_e key, TickType_t now)
+{
+    TickType_t debounce_ticks;
+
+    if ((key < KEY_0) || (key > KEY_3)) {
+        return 0U;
+    }
+
+    debounce_ticks = pdMS_TO_TICKS(KEY_DEBOUNCE_MS);
+    if ((now - g_key_last_tick[key]) < debounce_ticks) {
+        return 0U;
+    }
+
+    g_key_last_tick[key] = now;
+    return 1U;
+}
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
@@ -47,6 +67,7 @@ void GROUP1_IRQHandler(void)
                                                            KEY_KEY_3_PIN);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     key_e key_msg;
+    TickType_t now;
 
     if (pending_a & ENC_LEFT_ENA_PIN) {
         uint8_t a = DL_GPIO_readPins(GPIOA, ENC_LEFT_ENA_PIN) ? 1 : 0;
@@ -60,34 +81,46 @@ void GROUP1_IRQHandler(void)
 
     if (pending_a & KEY_KEY_0_PIN) {
         DL_GPIO_clearInterruptStatus(GPIOA, KEY_KEY_0_PIN);
-        key = KEY_0;
-        key_msg = KEY_0;
-        if (xKeyQueue != NULL) {
-            xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+        now = xTaskGetTickCountFromISR();
+        if (Key_IsAccepted(KEY_0, now) != 0U) {
+            key = KEY_0;
+            key_msg = KEY_0;
+            if (xKeyQueue != NULL) {
+                xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+            }
         }
     }
     if (pending_a & KEY_KEY_1_PIN) {
         DL_GPIO_clearInterruptStatus(GPIOA, KEY_KEY_1_PIN);
-        key = KEY_1;
-        key_msg = KEY_1;
-        if (xKeyQueue != NULL) {
-            xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+        now = xTaskGetTickCountFromISR();
+        if (Key_IsAccepted(KEY_1, now) != 0U) {
+            key = KEY_1;
+            key_msg = KEY_1;
+            if (xKeyQueue != NULL) {
+                xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+            }
         }
     }
     if (pending_b & KEY_KEY_2_PIN) {
         DL_GPIO_clearInterruptStatus(GPIOB, KEY_KEY_2_PIN);
-        key = KEY_2;
-        key_msg = KEY_2;
-        if (xKeyQueue != NULL) {
-            xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+        now = xTaskGetTickCountFromISR();
+        if (Key_IsAccepted(KEY_2, now) != 0U) {
+            key = KEY_2;
+            key_msg = KEY_2;
+            if (xKeyQueue != NULL) {
+                xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+            }
         }
     }
     if (pending_b & KEY_KEY_3_PIN) {
         DL_GPIO_clearInterruptStatus(GPIOB, KEY_KEY_3_PIN);
-        key = KEY_3;
-        key_msg = KEY_3;
-        if (xKeyQueue != NULL) {
-            xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+        now = xTaskGetTickCountFromISR();
+        if (Key_IsAccepted(KEY_3, now) != 0U) {
+            key = KEY_3;
+            key_msg = KEY_3;
+            if (xKeyQueue != NULL) {
+                xQueueSendFromISR(xKeyQueue, &key_msg, &xHigherPriorityTaskWoken);
+            }
         }
     }
 
@@ -218,13 +251,6 @@ static void vMPU9250Task(void *pvParameters) {
     }
 }
 
-static void vKeyTask(void *pvParameters) {
-    (void)pvParameters;
-
-    for (;;) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
 
 static void vOLEDTask(void *pvParameters) {
     (void)pvParameters;
@@ -235,7 +261,8 @@ static void vOLEDTask(void *pvParameters) {
 
     for (;;) {
         OLED_AppSetAttitude(pitch, roll, yaw);
-        if (xQueueReceive(xKeyQueue, &key_msg, portMAX_DELAY) == pdPASS) {
+        OLED_AppRefresh();
+        if (xQueueReceive(xKeyQueue, &key_msg, pdMS_TO_TICKS(100)) == pdPASS) {
             OLED_AppHandleKey(key_msg);
         }
     }
@@ -250,7 +277,6 @@ int main(void)
     xTaskCreate(vMainTask, "Main", 128, NULL, 1, NULL);
     xTaskCreate(vBlinkTask, "Blink", 128, NULL, 1, NULL);
     xTaskCreate(vUARTTask, "UART", 256, NULL, 1, NULL);
-    xTaskCreate(vKeyTask, "Key", 128, NULL, 1, NULL);
     xTaskCreate(vOLEDTask, "OLED", 256, NULL, 3, NULL);
     xTaskCreate(vMotorTask, "Motor", 128, NULL, 2, NULL);
     xTaskCreate(vMPU9250Task, "MPU9250", 384, NULL, 3, NULL);
