@@ -340,7 +340,7 @@ void MPU9250_CalibrateGyro(void) {
     float sum[3] = {0, 0, 0};
     int count = 0;
     
-    UART_SendData((uint8_t *)"Calibrating gyro (keep still)...\r\n", 36);
+    UART_SendData((uint8_t *)"Calibrating gyro\r\n", 18);
     
     // 采样500次，传感器必须静止
     for (int i = 0; i < 500; i++) {
@@ -356,9 +356,16 @@ void MPU9250_CalibrateGyro(void) {
     gyro_bias[1] = sum[1] / count;
     gyro_bias[2] = sum[2] / count;
     gyro_calibrated = true;
-    
+    int bias0_i = (int)(gyro_bias[0] * 100.0f);
+    int bias1_i = (int)(gyro_bias[1] * 100.0f);
+    int bias2_i = (int)(gyro_bias[2] * 100.0f);
+    int bias0_abs = bias0_i < 0 ? -bias0_i : bias0_i;
+    int bias1_abs = bias1_i < 0 ? -bias1_i : bias1_i;
+    int bias2_abs = bias2_i < 0 ? -bias2_i : bias2_i;
     char dbg[64];
-    int len = snprintf(dbg, sizeof(dbg), "Gyro bias: %.3f, %.3f, %.3f °/s\r\n", 
-                       gyro_bias[0], gyro_bias[1], gyro_bias[2]);
+    int len = snprintf(dbg, sizeof(dbg), "Gyro bias: %s%d.%02d,%s%d.%02d,%s%d.%02d°/s\r\n", 
+                       bias0_i < 0 ? "-" : "+",bias0_abs / 100, bias0_abs % 100,
+                       bias1_i < 0 ? "-" : "+",bias1_abs / 100, bias1_abs % 100,
+                       bias2_i < 0 ? "-" : "+",bias2_abs / 100, bias2_abs % 100);
     UART_SendData((uint8_t *)dbg, (uint16_t)len);
 }

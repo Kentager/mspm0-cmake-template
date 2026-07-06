@@ -1,0 +1,8 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.lmuai.com",
+    "ANTHROPIC_AUTH_TOKEN": "sk-7a5c2bfa8cddeb9dc57d02510a47e3cb8e513966c1023385aa4fbb6c27171f13",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+  }
+}

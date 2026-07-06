@@ -25,8 +25,8 @@ void Encoder_Init(void)
     encoder_right.distance_m = 0.0f;
 
     /* 使能 GPIO 中断（A 相上升沿和下降沿都触发） */
-    NVIC_EnableIRQ(ENC_GPIOA_INT_IRQN);  /* 左电机编码器 A2 */
-    NVIC_EnableIRQ(ENC_GPIOB_INT_IRQN);  /* 右电机编码器 B6 */
+    NVIC_EnableIRQ(GPIO_MULTIPLE_GPIOA_INT_IRQN);  /* 左电机编码器 A2 */
+    NVIC_EnableIRQ(GPIO_MULTIPLE_GPIOB_INT_IRQN);  /* 右电机编码器 B6 */
 }
 
 /* 正交解码（中断中调用） */

@@ -195,9 +195,10 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define IN_RIGHT_IN2_IOMUX                                       (IOMUX_PINCM19)
 /* Defines for LEFT_ENA: GPIOA.2 with pinCMx 7 on package pin 42 */
 #define ENC_LEFT_ENA_PORT                                                (GPIOA)
-// pins affected by this interrupt request:["LEFT_ENA","LEFT_ENB"]
-#define ENC_GPIOA_INT_IRQN                                      (GPIOA_INT_IRQn)
-#define ENC_GPIOA_INT_IIDX                      (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
+// groups represented: ["KEY","ENC"]
+// pins affected: ["KEY_0","KEY_1","LEFT_ENA","LEFT_ENB"]
+#define GPIO_MULTIPLE_GPIOA_INT_IRQN                            (GPIOA_INT_IRQn)
+#define GPIO_MULTIPLE_GPIOA_INT_IIDX            (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
 #define ENC_LEFT_ENA_IIDX                                    (DL_GPIO_IIDX_DIO2)
 #define ENC_LEFT_ENA_PIN                                         (DL_GPIO_PIN_2)
 #define ENC_LEFT_ENA_IOMUX                                        (IOMUX_PINCM7)
@@ -208,9 +209,10 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define ENC_LEFT_ENB_IOMUX                                       (IOMUX_PINCM14)
 /* Defines for RIGHT_ENA: GPIOB.6 with pinCMx 23 on package pin 58 */
 #define ENC_RIGHT_ENA_PORT                                               (GPIOB)
-// pins affected by this interrupt request:["RIGHT_ENA","RIGHT_ENB"]
-#define ENC_GPIOB_INT_IRQN                                      (GPIOB_INT_IRQn)
-#define ENC_GPIOB_INT_IIDX                      (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
+// groups represented: ["KEY","ENC"]
+// pins affected: ["KEY_2","KEY_3","RIGHT_ENA","RIGHT_ENB"]
+#define GPIO_MULTIPLE_GPIOB_INT_IRQN                            (GPIOB_INT_IRQn)
+#define GPIO_MULTIPLE_GPIOB_INT_IIDX            (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
 #define ENC_RIGHT_ENA_IIDX                                   (DL_GPIO_IIDX_DIO6)
 #define ENC_RIGHT_ENA_PIN                                        (DL_GPIO_PIN_6)
 #define ENC_RIGHT_ENA_IOMUX                                      (IOMUX_PINCM23)
@@ -219,6 +221,26 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 #define ENC_RIGHT_ENB_IIDX                                   (DL_GPIO_IIDX_DIO7)
 #define ENC_RIGHT_ENB_PIN                                        (DL_GPIO_PIN_7)
 #define ENC_RIGHT_ENB_IOMUX                                      (IOMUX_PINCM24)
+/* Defines for KEY_0: GPIOA.15 with pinCMx 37 on package pin 8 */
+#define KEY_KEY_0_PORT                                                   (GPIOA)
+#define KEY_KEY_0_IIDX                                      (DL_GPIO_IIDX_DIO15)
+#define KEY_KEY_0_PIN                                           (DL_GPIO_PIN_15)
+#define KEY_KEY_0_IOMUX                                          (IOMUX_PINCM37)
+/* Defines for KEY_1: GPIOA.12 with pinCMx 34 on package pin 5 */
+#define KEY_KEY_1_PORT                                                   (GPIOA)
+#define KEY_KEY_1_IIDX                                      (DL_GPIO_IIDX_DIO12)
+#define KEY_KEY_1_PIN                                           (DL_GPIO_PIN_12)
+#define KEY_KEY_1_IOMUX                                          (IOMUX_PINCM34)
+/* Defines for KEY_2: GPIOB.9 with pinCMx 26 on package pin 61 */
+#define KEY_KEY_2_PORT                                                   (GPIOB)
+#define KEY_KEY_2_IIDX                                       (DL_GPIO_IIDX_DIO9)
+#define KEY_KEY_2_PIN                                            (DL_GPIO_PIN_9)
+#define KEY_KEY_2_IOMUX                                          (IOMUX_PINCM26)
+/* Defines for KEY_3: GPIOB.8 with pinCMx 25 on package pin 60 */
+#define KEY_KEY_3_PORT                                                   (GPIOB)
+#define KEY_KEY_3_IIDX                                       (DL_GPIO_IIDX_DIO8)
+#define KEY_KEY_3_PIN                                            (DL_GPIO_PIN_8)
+#define KEY_KEY_3_IOMUX                                          (IOMUX_PINCM25)
 
 
 /* clang-format on */
