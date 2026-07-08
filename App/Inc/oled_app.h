@@ -3,6 +3,19 @@
 
 #include <stdint.h>
 #include "key.h"
+#include "FreeRTOS.h"
+#include "queue.h"
+
+#define JOB_QUEUE_LEN  8U
+
+typedef enum {
+  Job_0 = 0,
+  Job_1,
+  Job_2,
+  Job_3,
+} Job_e;
+
+extern QueueHandle_t xJobQueue;
 
 void OLED_AppInit(void);
 void OLED_AppHandleKey(key_e key);

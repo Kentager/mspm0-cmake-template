@@ -139,17 +139,36 @@ void GROUP1_IRQHandler(void)
 
 static void vMainTask(void *pvParameters) {
     (void)pvParameters;
-    uint8_t flag = 0;
+    uint8_t tick = 0;
+    static Job_e msg = -1;
     vTaskDelay(pdMS_TO_TICKS(3000));
     for (;;) {
-        if (OLED_AppIsAutoRunEnabled() != 0U) {
-            Motor_App_SetSpeed(0.2f, 0.2f);
-            Motor_App_SetTargetYaw(flag % 4 == 0 ? 0.0f :
-                                   flag % 4 == 1 ? -90.0f :
-                                   flag % 4 == 2 ? -180.0f : 180.0f);
-            flag++;
-        }
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        xQueueReceive(xJobQueue, &msg, 0);
+        switch (msg) {
+        case Job_0:
+            if (OLED_AppIsAutoRunEnabled() != 0U) {
+                Motor_App_SetSpeed(0.2f, 0.2f);
+                Motor_App_SetTargetYaw(tick / 30 % 4 == 0 ? 0.0f :
+                                    tick / 30 % 4 == 1 ? -90.0f :
+                                    tick / 30 % 4 == 2 ? -180.0f : 90.0f);
+                tick++;
+            }
+            if (tick == 30 * 4 * 2 - 2) {
+                msg = -1;
+                Motor_App_SetSpeed(0.0f, 0.0f);
+            }
+            break;
+          case Job_1:
+            break;
+          case Job_2:
+            break;
+          case Job_3:
+            break;
+          default:
+            tick = 0;
+            break;
+        };
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -273,6 +292,7 @@ int main(void)
 {
     SYSCFG_DL_init();
     xKeyQueue = xQueueCreate(KEY_QUEUE_LEN, sizeof(key_e));
+    xJobQueue = xQueueCreate(JOB_QUEUE_LEN, sizeof(Job_e));
     // xTaskCreate(vI2CScanTask_OLED, "I2CScan", 256, NULL, 3, NULL);  /* 调试用，已注释 */
     xTaskCreate(vMainTask, "Main", 128, NULL, 1, NULL);
     xTaskCreate(vBlinkTask, "Blink", 128, NULL, 1, NULL);

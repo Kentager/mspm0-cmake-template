@@ -1,13 +1,12 @@
 #include "oled_app.h"
+#include "key.h"
 #include "oled.h"
 #include "oled_menu.h"
 #include "motor_app.h"
 #include <stdio.h>
 
-typedef struct {
-    float left_m_s;
-    float right_m_s;
-} MenuSpeedCmd_t;
+QueueHandle_t xJobQueue = NULL;
+
 
 typedef enum {
     OLED_PAGE_MENU = 0,
@@ -23,7 +22,10 @@ static float g_roll;
 static float g_yaw;
 static OLED_Page_t g_current_page = OLED_PAGE_MENU;
 
-static void MenuAction_SetSpeed(void *data);
+static void MenuAction_SendJobQueue(void *data);
+
+static Job_e g_job_0 = Job_0;
+static Job_e g_job_1 = Job_1;
 
 static void MenuAction_ShowYaw(void *data);
 static void MenuAction_ShowVelocity(void *data);
@@ -35,28 +37,21 @@ static void OLED_AppUpdateYawPageData(void);
 static void OLED_AppUpdateVelocityPageData(void);
 static void OLED_AppUpdateDistancePageData(void);
 
-static const MenuSpeedCmd_t g_menu_speed_forward = {0.2f, 0.2f};
-static const MenuSpeedCmd_t g_menu_speed_backward = {-0.2f, -0.2f};
 
 
 static MenuItem_t g_menu_items[] = {
     {"Root",     -1,  1, -1, 0, 0},
-    {"Motion",    0,  3,  2, 0, 0},
+    {"Action",    0,  3,  2, 0, 0},
     {"Status",    0,  5, -1, 0, 0},
 
-    {"Forward",    1, -1,  4, MenuAction_SetSpeed, (void *)&g_menu_speed_forward},
-    {"Backward",   1, -1,  -1, MenuAction_SetSpeed, (void *)&g_menu_speed_backward},
+    {"Job_0",    1, -1,  4, MenuAction_SendJobQueue, &g_job_0},
+    {"Job_1",   1, -1,  -1, MenuAction_SendJobQueue, &g_job_1},
 
     {"Show Yaw",   2, -1, 6, MenuAction_ShowYaw, 0},
     {"Show Vel",   2, -1, 7, MenuAction_ShowVelocity, 0},
     {"Show Dist",  2, -1, -1, MenuAction_ShowDistance, 0},
 
 };
-
-static void Menu_DisableAutoRun(void)
-{
-    g_auto_run_enabled = 0U;
-}
 
 static void Menu_ShowTempPageTitle(const char *title)
 {
@@ -147,19 +142,6 @@ static void OLED_AppUpdateDistancePageData(void)
     OLED_ShowString(4, 4, buf, 1);
 }
 
-static void MenuAction_SetSpeed(void *data)
-{
-    const MenuSpeedCmd_t *cmd = (const MenuSpeedCmd_t *)data;
-
-    if (cmd == 0) {
-        return;
-    }
-
-    Menu_DisableAutoRun();
-    Motor_App_SetSpeed(cmd->left_m_s, cmd->right_m_s);
-}
-
-
 static void MenuAction_ShowYaw(void *data)
 {
     (void)data;
@@ -182,6 +164,18 @@ static void MenuAction_ShowDistance(void *data)
     g_current_page = OLED_PAGE_DISTANCE;
     OLED_AppDrawDistancePageFrame();
     OLED_AppUpdateDistancePageData();
+}
+
+static void MenuAction_SendJobQueue(void *data)
+{
+    Job_e job;
+
+    if (data == 0) {
+        return;
+    }
+
+    job = *(Job_e *)data;
+    xQueueSend(xJobQueue, &job, 0);
 }
 
 
