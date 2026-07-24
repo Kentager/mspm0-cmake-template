@@ -13,6 +13,7 @@ typedef enum {
     OLED_PAGE_YAW,
     OLED_PAGE_VELOCITY,
     OLED_PAGE_DISTANCE,
+    OLED_PAGE_GRAYSCALE,
 } OLED_Page_t;
 
 static MenuManager_t g_menu_mgr;
@@ -20,36 +21,45 @@ static volatile uint8_t g_auto_run_enabled = 1U;
 static float g_pitch;
 static float g_roll;
 static float g_yaw;
+static uint16_t g_sensor_values[8];
 static OLED_Page_t g_current_page = OLED_PAGE_MENU;
 
 static void MenuAction_SendJobQueue(void *data);
 
 static Job_e g_job_0 = Job_0;
 static Job_e g_job_1 = Job_1;
+static Job_e g_job_2 = Job_2;
+static Job_e g_job_3 = Job_3;
 
 static void MenuAction_ShowYaw(void *data);
 static void MenuAction_ShowVelocity(void *data);
 static void MenuAction_ShowDistance(void *data);
+static void MenuAction_ShowGrayscale(void *data);
 static void OLED_AppDrawYawPageFrame(void);
 static void OLED_AppDrawVelocityPageFrame(void);
 static void OLED_AppDrawDistancePageFrame(void);
+static void OLED_AppDrawGrayscalePageFrame(void);
 static void OLED_AppUpdateYawPageData(void);
 static void OLED_AppUpdateVelocityPageData(void);
 static void OLED_AppUpdateDistancePageData(void);
+static void OLED_AppUpdateGrayscalePageData(void);
 
 
 
 static MenuItem_t g_menu_items[] = {
-    {"Root",     -1,  1, -1, 0, 0},
-    {"Action",    0,  3,  2, 0, 0},
-    {"Status",    0,  5, -1, 0, 0},
+    {"Root", -1, 1, -1, 0, 0},
+    {"Action", 0, 3, 2, 0, 0},
+    {"Status", 0, 7, -1, 0, 0},
 
-    {"Job_0",    1, -1,  4, MenuAction_SendJobQueue, &g_job_0},
-    {"Job_1",   1, -1,  -1, MenuAction_SendJobQueue, &g_job_1},
+    {"Job_0", 1, -1, 4, MenuAction_SendJobQueue, &g_job_0},
+    {"Job_1", 1, -1, 5, MenuAction_SendJobQueue, &g_job_1},
+    {"Job_2", 1, -1, 6, MenuAction_SendJobQueue, &g_job_2},
+    {"Job_3", 1, -1, -1, MenuAction_SendJobQueue, &g_job_3},
 
-    {"Show Yaw",   2, -1, 6, MenuAction_ShowYaw, 0},
-    {"Show Vel",   2, -1, 7, MenuAction_ShowVelocity, 0},
-    {"Show Dist",  2, -1, -1, MenuAction_ShowDistance, 0},
+    {"Show Yaw",   2, -1, 8, MenuAction_ShowYaw, 0},
+    {"Show Vel",   2, -1, 9, MenuAction_ShowVelocity, 0},
+    {"Show Dist",  2, -1, 10, MenuAction_ShowDistance, 0},
+    {"Show Gray",  2, -1, -1, MenuAction_ShowGrayscale, 0},
 
 };
 
@@ -103,6 +113,13 @@ static void OLED_AppDrawDistancePageFrame(void)
     Menu_ShowTempPageHint();
 }
 
+static void OLED_AppDrawGrayscalePageFrame(void)
+{
+    Menu_ShowTempPageTitle("Gray Sensor");
+    OLED_ShowString(4, 2, "1 2 3 4 5 6 7 8", 1);
+    Menu_ShowTempPageHint();
+}
+
 static void OLED_AppUpdateYawPageData(void)
 {
     char buf[24];
@@ -142,6 +159,18 @@ static void OLED_AppUpdateDistancePageData(void)
     OLED_ShowString(4, 4, buf, 1);
 }
 
+static void OLED_AppUpdateGrayscalePageData(void)
+{
+    char buf[17];
+    for(uint8_t i = 0; i < 8 ; i ++){
+      buf[i * 2] = g_sensor_values[i] ? '#' : '-';
+      buf[i * 2 + 1] = ' ';
+    }
+    buf[16] = '\0';
+    OLED_ShowString(6, 2, "                ", 1);
+    OLED_ShowString(6, 2, buf, 1);
+}
+
 static void MenuAction_ShowYaw(void *data)
 {
     (void)data;
@@ -164,6 +193,14 @@ static void MenuAction_ShowDistance(void *data)
     g_current_page = OLED_PAGE_DISTANCE;
     OLED_AppDrawDistancePageFrame();
     OLED_AppUpdateDistancePageData();
+}
+
+static void MenuAction_ShowGrayscale(void *data)
+{
+    (void)data;
+    g_current_page = OLED_PAGE_GRAYSCALE;
+    OLED_AppDrawGrayscalePageFrame();
+    OLED_AppUpdateGrayscalePageData();
 }
 
 static void MenuAction_SendJobQueue(void *data)
@@ -203,6 +240,11 @@ void OLED_AppSetAttitude(float pitch, float roll, float yaw)
     g_yaw = yaw;
 }
 
+void OLED_AppSetSensorValues(uint16_t* sensor_values) {
+    for(int i = 0; i < 8; i++) {
+      g_sensor_values[i] = sensor_values[i];
+    }
+}
 void OLED_AppRefresh(void)
 {
     if (g_menu_mgr.skip_render_once == 0U) {
@@ -220,6 +262,10 @@ void OLED_AppRefresh(void)
 
         case OLED_PAGE_DISTANCE:
             OLED_AppUpdateDistancePageData();
+            break;
+
+        case OLED_PAGE_GRAYSCALE:
+            OLED_AppUpdateGrayscalePageData();
             break;
 
         case OLED_PAGE_MENU:

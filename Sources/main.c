@@ -1,10 +1,13 @@
 #include "FreeRTOS.h"
+#include "projdefs.h"
 #include "task.h"
 #include "motor.h"
 #include "uart.h"
 #include "madgwick.h"
 #include "encoder.h"
 #include "ti_msp_dl_config.h"
+#include "channel_grayscale_sensor.h"
+#include "grayscale_sensor.h"
 #include "motor_app.h"
 #include "mpu9250.h"
 #include <math.h>
@@ -14,28 +17,36 @@
 
 static MPU9250_Data_t sensor_data;
 
-#define KEY_DEBOUNCE_MS  20U
+#define KEY_COOLDOWN_MS  500U
 
-static TickType_t g_key_last_tick[4] = {0};
+static TickType_t g_key_last_tick = 0;
+static uint8_t g_key_has_last_tick = 0U;
 
 static float pitch = 0.0f;
 static float roll = 0.0f;
 static float yaw = 0.0f;
 
+static uint16_t sensor_values[8] = {0};
+
+#define BLUETOOTH_NAME        "YHUTB"
+#define BLUETOOTH_PASSWORD    "2025"
+#define BLUETOOTH_AT_DELAY_MS 200U
+
 static uint8_t Key_IsAccepted(key_e key, TickType_t now)
 {
-    TickType_t debounce_ticks;
+    TickType_t cooldown_ticks;
 
     if ((key < KEY_0) || (key > KEY_3)) {
         return 0U;
     }
 
-    debounce_ticks = pdMS_TO_TICKS(KEY_DEBOUNCE_MS);
-    if ((now - g_key_last_tick[key]) < debounce_ticks) {
+    cooldown_ticks = pdMS_TO_TICKS(KEY_COOLDOWN_MS);
+    if ((g_key_has_last_tick != 0U) && ((now - g_key_last_tick) < cooldown_ticks)) {
         return 0U;
     }
 
-    g_key_last_tick[key] = now;
+    g_key_last_tick = now;
+    g_key_has_last_tick = 1U;
     return 1U;
 }
 
@@ -141,30 +152,57 @@ static void vMainTask(void *pvParameters) {
     (void)pvParameters;
     uint8_t tick = 0;
     static Job_e msg = -1;
+    static uint8_t Job_1_flag = 0;
     vTaskDelay(pdMS_TO_TICKS(3000));
     for (;;) {
         xQueueReceive(xJobQueue, &msg, 0);
         switch (msg) {
         case Job_0:
-            if (OLED_AppIsAutoRunEnabled() != 0U) {
-                Motor_App_SetSpeed(0.2f, 0.2f);
-                Motor_App_SetTargetYaw(tick / 30 % 4 == 0 ? 0.0f :
-                                    tick / 30 % 4 == 1 ? -90.0f :
-                                    tick / 30 % 4 == 2 ? -180.0f : 90.0f);
-                tick++;
+            // if (OLED_AppIsAutoRunEnabled() != 0U) {
+            //     Motor_App_SetSpeed(0.2f, 0.2f);
+            //     Motor_App_SetTargetYaw(tick / 30 % 4 == 0 ? 0.0f :
+            //                         tick / 30 % 4 == 1 ? -90.0f :
+            //                         tick / 30 % 4 == 2 ? -180.0f : 90.0f);
+            //     tick++;
+            // }
+            // if (tick == 30 * 4 * 2 - 2) {
+            //     msg = -1;
+            //     Motor_App_SetSpeed(0.0f, 0.0f);
+            // }
+            Motor_App_SetSpeed(0.05f, -0.05f);
+            break;
+        case Job_1:
+            switch(Job_1_flag){
+                case 0:
+                    Motor_App_SetMode(ANGLE_MODE);
+                    Motor_App_SetTargetYaw(0.0f);
+                    Motor_App_SetSpeed(0.2, 0.2);
+                    if(irSensorData.sensorFlag == 1U)Job_1_flag = 1;
+                    break;
+                case 1:
+                    Motor_App_SetMode(SENSOR_MODE);
+                    if(irSensorData.sensorFlag == 0U)Job_1_flag = 2;
+                    break;
+                case 2:
+                    Motor_App_SetMode(ANGLE_MODE);
+                    Motor_App_SetTargetYaw(-180.0f);
+                    Motor_App_SetSpeed(0.2, 0.2);
+                    if(irSensorData.sensorFlag == 1U)Job_1_flag = 3;
+                    break;
+                case 3:
+                    Motor_App_SetMode(SENSOR_MODE);
+                    if(irSensorData.sensorFlag == 0U)Job_1_flag = 0;
+                    break;
             }
-            if (tick == 30 * 4 * 2 - 2) {
-                msg = -1;
-                Motor_App_SetSpeed(0.0f, 0.0f);
-            }
             break;
-          case Job_1:
+        case Job_2:
+            Motor_App_SetMode(SENSOR_MODE);
+            Motor_App_SetSpeed(0.2f, 0.2f);
             break;
-          case Job_2:
+        case Job_3:
+            Motor_App_SetMode(ANGLE_MODE);
             break;
-          case Job_3:
-            break;
-          default:
+        default:
             tick = 0;
             break;
         };
@@ -177,7 +215,7 @@ static void vBlinkTask(void *pvParameters)
     (void)pvParameters;
     for (;;)
     {
-        DL_GPIO_togglePins(LED_PORT, LED_PIN_2_PIN);
+        DL_GPIO_togglePins(LED_PORT, LED_PIN_PIN);
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
@@ -194,24 +232,20 @@ static void vMotorTask(void *pvParameters) {
 
 static void vUARTTask(void *pvParameters) {
     (void)pvParameters;
-    char buf[48];
+    char buf[24];
+    TickType_t last_wake_time;
+
     UART_Init();
+    last_wake_time = xTaskGetTickCount();
     for (;;) {
-        int pitch_i = (int)(pitch * 100.0f);
-        int roll_i = (int)(roll * 100.0f);
         int yaw_i = (int)(yaw * 100.0f);
-        int pitch_abs = pitch_i < 0 ? -pitch_i : pitch_i;
-        int roll_abs = roll_i < 0 ? -roll_i : roll_i;
         int yaw_abs = yaw_i < 0 ? -yaw_i : yaw_i;
-        int len = snprintf(buf, sizeof(buf),
-                           "%s%d.%02d,%s%d.%02d,%s%d.%02d\r\n",
-                           pitch_i < 0 ? "-" : "", pitch_abs / 100, pitch_abs % 100,
-                           roll_i < 0 ? "-" : "", roll_abs / 100, roll_abs % 100,
+        int len = snprintf(buf, sizeof(buf), "YAW:%s%d.%02d\r\n",
                            yaw_i < 0 ? "-" : "", yaw_abs / 100, yaw_abs % 100);
         if (len > 0) {
             UART_SendData((uint8_t *)buf, (uint16_t)len);
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(20));
     }
 }
 
@@ -280,6 +314,7 @@ static void vOLEDTask(void *pvParameters) {
 
     for (;;) {
         OLED_AppSetAttitude(pitch, roll, yaw);
+        OLED_AppSetSensorValues(sensor_values);
         OLED_AppRefresh();
         if (xQueueReceive(xKeyQueue, &key_msg, pdMS_TO_TICKS(100)) == pdPASS) {
             OLED_AppHandleKey(key_msg);
@@ -287,6 +322,17 @@ static void vOLEDTask(void *pvParameters) {
     }
 }
 
+
+static void vSensorTask(void *pvParameters) {
+    (void)pvParameters;
+    irSensor_DataInit(&irSensorData);
+    for (;;) {
+        irSensor_Update(&irSensorData);
+        
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    
+}
 
 int main(void)
 {
@@ -297,8 +343,9 @@ int main(void)
     xTaskCreate(vMainTask, "Main", 128, NULL, 1, NULL);
     xTaskCreate(vBlinkTask, "Blink", 128, NULL, 1, NULL);
     xTaskCreate(vUARTTask, "UART", 256, NULL, 1, NULL);
-    xTaskCreate(vOLEDTask, "OLED", 256, NULL, 3, NULL);
     xTaskCreate(vMotorTask, "Motor", 128, NULL, 2, NULL);
+    xTaskCreate(vSensorTask, "Sensor", 128, NULL, 2, NULL);
+    xTaskCreate(vOLEDTask, "OLED", 256, NULL, 3, NULL);
     xTaskCreate(vMPU9250Task, "MPU9250", 384, NULL, 3, NULL);
     vTaskStartScheduler();
     for (;;) {}

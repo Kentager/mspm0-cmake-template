@@ -3,8 +3,14 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "channel_grayscale_sensor.h"
 
 
+typedef enum {
+    SPEED_MODE = 0,
+    ANGLE_MODE,
+    SENSOR_MODE,
+}Motor_Mode_e;
 /*--------------------初始化--------------------*/
 
 /**
@@ -81,4 +87,6 @@ void Motor_App_ResetDistance(void);
  */
 void Motor_App_Brake(void);
 
+
+void Motor_App_SetMode(Motor_Mode_e mode);
 #endif /* MOTOR_APP_H */

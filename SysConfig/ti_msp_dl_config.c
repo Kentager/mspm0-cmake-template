@@ -147,7 +147,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_initPeripheralInputFunction(
         GPIO_UART_1_IOMUX_RX, GPIO_UART_1_IOMUX_RX_FUNC);
 
-    DL_GPIO_initDigitalOutput(LED_PIN_2_IOMUX);
+    DL_GPIO_initDigitalOutput(LED_PIN_IOMUX);
 
     DL_GPIO_initDigitalOutput(IN_LEFT_IN1_IOMUX);
 
@@ -189,14 +189,30 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
+    DL_GPIO_initDigitalInputFeatures(GrayS_PIN_3_IOMUX,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_NONE,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+
+    DL_GPIO_initDigitalOutput(GrayS_PIN_0_IOMUX);
+
+    DL_GPIO_initDigitalOutput(GrayS_PIN_1_IOMUX);
+
+    DL_GPIO_initDigitalOutput(GrayS_PIN_2_IOMUX);
+
     DL_GPIO_clearPins(GPIOA, IN_LEFT_IN1_PIN |
 		IN_LEFT_IN2_PIN |
 		IN_RIGHT_IN1_PIN |
-		IN_RIGHT_IN2_PIN);
+		IN_RIGHT_IN2_PIN |
+		GrayS_PIN_0_PIN |
+		GrayS_PIN_1_PIN |
+		GrayS_PIN_2_PIN);
     DL_GPIO_enableOutput(GPIOA, IN_LEFT_IN1_PIN |
 		IN_LEFT_IN2_PIN |
 		IN_RIGHT_IN1_PIN |
-		IN_RIGHT_IN2_PIN);
+		IN_RIGHT_IN2_PIN |
+		GrayS_PIN_0_PIN |
+		GrayS_PIN_1_PIN |
+		GrayS_PIN_2_PIN);
     DL_GPIO_setLowerPinsPolarity(GPIOA, DL_GPIO_PIN_2_EDGE_RISE_FALL |
 		DL_GPIO_PIN_7_EDGE_RISE_FALL |
 		DL_GPIO_PIN_15_EDGE_FALL |
@@ -209,8 +225,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		ENC_LEFT_ENB_PIN |
 		KEY_KEY_0_PIN |
 		KEY_KEY_1_PIN);
-    DL_GPIO_clearPins(GPIOB, LED_PIN_2_PIN);
-    DL_GPIO_enableOutput(GPIOB, LED_PIN_2_PIN);
+    DL_GPIO_clearPins(GPIOB, LED_PIN_PIN);
+    DL_GPIO_enableOutput(GPIOB, LED_PIN_PIN);
     DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_6_EDGE_RISE_FALL |
 		DL_GPIO_PIN_7_EDGE_RISE_FALL |
 		DL_GPIO_PIN_9_EDGE_FALL |
@@ -514,11 +530,11 @@ SYSCONFIG_WEAK void SYSCFG_DL_UART_1_init(void)
     DL_UART_Main_init(UART_1_INST, (DL_UART_Main_Config *) &gUART_1Config);
     /*
      * Configure baud rate by setting oversampling and baud rate divisors.
-     *  Target baud rate: 115200
-     *  Actual baud rate: 115211.52
+     *  Target baud rate: 9600
+     *  Actual baud rate: 9599.88
      */
     DL_UART_Main_setOversampling(UART_1_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(UART_1_INST, UART_1_IBRD_64_MHZ_115200_BAUD, UART_1_FBRD_64_MHZ_115200_BAUD);
+    DL_UART_Main_setBaudRateDivisor(UART_1_INST, UART_1_IBRD_64_MHZ_9600_BAUD, UART_1_FBRD_64_MHZ_9600_BAUD);
 
 
 

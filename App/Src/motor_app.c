@@ -1,12 +1,14 @@
 /*--------------------头文件--------------------*/
 
 #include "motor_app.h"
+#include "channel_grayscale_sensor.h"
 #include "motor.h"
 #include "encoder.h"
 #include "speed_pid.h"
 
 /*--------------------内部常量--------------------*/
 
+static Motor_Mode_e motor_mode = SPEED_MODE;
 /*
  * m/s → 脉冲/采样周期 换算
  *   counts_per_sec   = velocity / DIST_PER_PULSE
@@ -98,14 +100,36 @@ void Motor_App_Update(void)
         if (left_reached)  target_left_ms  = 0.0f;
         if (right_reached) target_right_ms = 0.0f;
     }
-
-    /* 3. 角度控制 */
-    float yaw_diff = (target_yaw - current_yaw) / 180.0f; /* (目标角度 - 当前角度) / 180度 (-1.0 ~ 1.0) */
-    while(yaw_diff > 1.0f || yaw_diff < -1.0f)yaw_diff = (yaw_diff >1.0f) ? -(yaw_diff - 1.0f) : (yaw_diff < -1.0f) ? -(yaw_diff + 1.0f) : yaw_diff;
-    /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-    float target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.4f,  APP_SAMPLE_PERIOD_MS);
-    float target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.4f, APP_SAMPLE_PERIOD_MS);
-
+    float target_l;
+    float target_r;
+    switch (motor_mode) {
+        case ANGLE_MODE: {
+            /* 3. 角度控制 */
+            float yaw_diff = (target_yaw - current_yaw) / 180.0f; /* (目标角度 - 当前角度) / 180度 (-1.0 ~ 1.0) */
+            while(yaw_diff > 1.0f || yaw_diff < -1.0f)yaw_diff = (yaw_diff >1.0f) ? -(yaw_diff - 1.0f) : (yaw_diff < -1.0f) ? -(yaw_diff + 1.0f) : yaw_diff;
+            /* 4. m/s → 脉冲/采样周期（float 保留精度） */
+            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.2f,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.2f, APP_SAMPLE_PERIOD_MS);
+            break;
+        }
+        case SPEED_MODE:
+            /* 4. m/s → 脉冲/采样周期（float 保留精度） */
+            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms, APP_SAMPLE_PERIOD_MS);
+            break;
+        case SENSOR_MODE:{
+            /* 4. m/s → 脉冲/采样周期（float 保留精度） */
+            float diff_speed = irSensor_GetDiffSpeed(&irSensorData);
+            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + diff_speed / 2, APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - diff_speed / 2, APP_SAMPLE_PERIOD_MS);
+            break;
+        }
+        default:
+            /* 4. m/s → 脉冲/采样周期（float 保留精度） */
+            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms, APP_SAMPLE_PERIOD_MS);
+            break;
+    }
     /* 5. PID 计算 */
     float out_l = Speed_PID_Compute(&pid_left,  target_l, actual_l);
     float out_r = Speed_PID_Compute(&pid_right, target_r, actual_r);
@@ -181,6 +205,10 @@ void Motor_App_ResetDistance(void)
     Encoder_Reset(&encoder_right);
 }
 
+void Motor_App_SetMode(Motor_Mode_e mode) {
+    motor_mode = mode;
+}
+
 /*--------------------急停--------------------*/
 
 void Motor_App_Brake(void)
@@ -193,3 +221,4 @@ void Motor_App_Brake(void)
     target_right_ms  = 0.0f;
     distance_mode    = false;
 }
+

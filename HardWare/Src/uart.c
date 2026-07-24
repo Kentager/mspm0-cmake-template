@@ -12,8 +12,12 @@ static QueueHandle_t xTxQueue = NULL;
 void UART_Init(void)
 {
     /* 创建接收和发送队列 */
-    xRxQueue = xQueueCreate(UART_RX_QUEUE_LEN, sizeof(uint8_t));
-    xTxQueue = xQueueCreate(UART_TX_QUEUE_LEN, sizeof(uint8_t));
+    if (xRxQueue == NULL) {
+        xRxQueue = xQueueCreate(UART_RX_QUEUE_LEN, sizeof(uint8_t));
+    }
+    if (xTxQueue == NULL) {
+        xTxQueue = xQueueCreate(UART_TX_QUEUE_LEN, sizeof(uint8_t));
+    }
 
     /* 使能 UART 接收中断 */
     DL_UART_Main_enableInterrupt(UART_1_INST, DL_UART_MAIN_INTERRUPT_RX);
@@ -44,6 +48,7 @@ void UART_SendData(const uint8_t *data, uint16_t len)
     }
 }
 
+
 /* 从接收队列读取一个字节（阻塞） */
 uint8_t UART_ReceiveByte(void)
 {
@@ -69,7 +74,9 @@ void UART_1_INST_IRQHandler(void)
 
         /* 发送到接收队列（非阻塞） */
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xQueueSendFromISR(xRxQueue, &data, &xHigherPriorityTaskWoken);
+        if (xRxQueue != NULL) {
+            xQueueSendFromISR(xRxQueue, &data, &xHigherPriorityTaskWoken);
+        }
 
         /* 如果需要，进行上下文切换 */
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
