@@ -156,6 +156,22 @@ void Menu_Init(MenuManager_t *mgr, MenuItem_t *items, uint16_t count)
     mgr->view_start_index = first_child;
 }
 
+void Menu_ReturnToRoot(MenuManager_t *mgr)
+{
+    int16_t first_child;
+
+    if ((mgr == 0) || (mgr->items == 0) || (mgr->total_count == 0)) {
+        return;
+    }
+
+    first_child = Menu_GetFirstChild(mgr, mgr->root_index);
+    mgr->current_parent = mgr->root_index;
+    mgr->current_index = (first_child == MENU_INVALID_INDEX) ? mgr->root_index : first_child;
+    mgr->view_start_index = mgr->current_index;
+    mgr->skip_render_once = 0U;
+    Menu_Render(mgr);
+}
+
 void Menu_Render(MenuManager_t *mgr)
 {
     int16_t node;

@@ -9,10 +9,12 @@
 #define JOB_QUEUE_LEN  8U
 
 typedef enum {
+  Job_None = -1,
   Job_0 = 0,
   Job_1,
   Job_2,
   Job_3,
+  Job_Stop,
 } Job_e;
 
 extern QueueHandle_t xJobQueue;
@@ -22,5 +24,6 @@ void OLED_AppHandleKey(key_e key);
 void OLED_AppSetAttitude(float pitch, float roll, float yaw);
 void OLED_AppSetSensorValues(uint16_t* sensor_values);
 void OLED_AppRefresh(void);
+void OLED_AppPauseTimer(void);
 uint8_t OLED_AppIsAutoRunEnabled(void);
 #endif

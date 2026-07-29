@@ -57,8 +57,11 @@ Board.peripheral.swdioPin.$assign = "j25_expansion.14";
 
 GPIO1.$name                         = "LED";
 GPIO1.port                          = "PORTB";
+GPIO1.associatedPins.create(2);
 GPIO1.associatedPins[0].assignedPin = "2";
 GPIO1.associatedPins[0].$name       = "PIN";
+GPIO1.associatedPins[1].assignedPin = "3";
+GPIO1.associatedPins[1].$name       = "LEF";
 
 GPIO2.$name                          = "IN";
 GPIO2.associatedPins.create(4);
@@ -214,6 +217,7 @@ ProjectConfig.migrationCondition = true;
  * re-solve from scratch.
  */
 GPIO1.associatedPins[0].pin.$suggestSolution = "boosterpack.9";
+GPIO1.associatedPins[1].pin.$suggestSolution = "boosterpack.10";
 GPIO2.associatedPins[0].pin.$suggestSolution = "boosterpack.37";
 GPIO2.associatedPins[1].pin.$suggestSolution = "boosterpack.38";
 GPIO2.associatedPins[2].pin.$suggestSolution = "boosterpack.3";

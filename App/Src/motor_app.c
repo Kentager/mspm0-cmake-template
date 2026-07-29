@@ -108,8 +108,8 @@ void Motor_App_Update(void)
             float yaw_diff = (target_yaw - current_yaw) / 180.0f; /* (目标角度 - 当前角度) / 180度 (-1.0 ~ 1.0) */
             while(yaw_diff > 1.0f || yaw_diff < -1.0f)yaw_diff = (yaw_diff >1.0f) ? -(yaw_diff - 1.0f) : (yaw_diff < -1.0f) ? -(yaw_diff + 1.0f) : yaw_diff;
             /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.2f,  APP_SAMPLE_PERIOD_MS);
-            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.2f, APP_SAMPLE_PERIOD_MS);
+            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.6f,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.6f, APP_SAMPLE_PERIOD_MS);
             break;
         }
         case SPEED_MODE:
@@ -219,6 +219,8 @@ void Motor_App_Brake(void)
     Speed_PID_Reset(&pid_right);
     target_left_ms   = 0.0f;
     target_right_ms  = 0.0f;
+    target_yaw       = current_yaw;
     distance_mode    = false;
+    motor_mode       = SPEED_MODE;
 }
 

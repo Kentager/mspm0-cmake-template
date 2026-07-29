@@ -30,5 +30,6 @@ typedef struct {
 void Menu_Init(MenuManager_t *mgr , MenuItem_t *items, uint16_t count);
 void Menu_Render(MenuManager_t *mgr);
 void Menu_HandleKey(MenuManager_t *mgr, key_e key);
+void Menu_ReturnToRoot(MenuManager_t *mgr);
 
 #endif

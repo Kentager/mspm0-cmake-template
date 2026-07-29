@@ -256,6 +256,9 @@ bool SYSCFG_DL_SYSCTL_SYSPLL_init(void);
 /* Defines for PIN_2: GPIOA.27 with pinCMx 60 on package pin 31 */
 #define GrayS_PIN_2_PIN                                         (DL_GPIO_PIN_27)
 #define GrayS_PIN_2_IOMUX                                        (IOMUX_PINCM60)
+/* Defines for LEF: GPIOB.3 with pinCMx 16 on package pin 51 */
+#define LED_LEF_PIN                                              (DL_GPIO_PIN_3)
+#define LED_LEF_IOMUX                                            (IOMUX_PINCM16)
 
 
 /* clang-format on */

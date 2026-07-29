@@ -150,33 +150,31 @@ void GROUP1_IRQHandler(void)
 
 static void vMainTask(void *pvParameters) {
     (void)pvParameters;
-    uint8_t tick = 0;
-    static Job_e msg = -1;
+    Job_e received_job;
+    static Job_e msg = Job_None;
     static uint8_t Job_1_flag = 0;
     vTaskDelay(pdMS_TO_TICKS(3000));
     for (;;) {
-        xQueueReceive(xJobQueue, &msg, 0);
+        if (xQueueReceive(xJobQueue, &received_job, 0) == pdPASS) {
+            if (received_job == Job_Stop) {
+                msg = Job_None;
+                Job_1_flag = 0U;
+                Motor_App_Brake();
+            } else {
+                msg = received_job;
+            }
+        }
+
         switch (msg) {
         case Job_0:
-            // if (OLED_AppIsAutoRunEnabled() != 0U) {
-            //     Motor_App_SetSpeed(0.2f, 0.2f);
-            //     Motor_App_SetTargetYaw(tick / 30 % 4 == 0 ? 0.0f :
-            //                         tick / 30 % 4 == 1 ? -90.0f :
-            //                         tick / 30 % 4 == 2 ? -180.0f : 90.0f);
-            //     tick++;
-            // }
-            // if (tick == 30 * 4 * 2 - 2) {
-            //     msg = -1;
-            //     Motor_App_SetSpeed(0.0f, 0.0f);
-            // }
-            Motor_App_SetSpeed(0.05f, -0.05f);
+            Motor_App_SetSpeed(0.2f, 0.3264f);
             break;
         case Job_1:
             switch(Job_1_flag){
                 case 0:
                     Motor_App_SetMode(ANGLE_MODE);
                     Motor_App_SetTargetYaw(0.0f);
-                    Motor_App_SetSpeed(0.2, 0.2);
+                    Motor_App_SetSpeed(0.4, 0.2);
                     if(irSensorData.sensorFlag == 1U)Job_1_flag = 1;
                     break;
                 case 1:
@@ -202,8 +200,9 @@ static void vMainTask(void *pvParameters) {
         case Job_3:
             Motor_App_SetMode(ANGLE_MODE);
             break;
+        case Job_None:
+        case Job_Stop:
         default:
-            tick = 0;
             break;
         };
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -215,8 +214,8 @@ static void vBlinkTask(void *pvParameters)
     (void)pvParameters;
     for (;;)
     {
-        DL_GPIO_togglePins(LED_PORT, LED_PIN_PIN);
-        vTaskDelay(pdMS_TO_TICKS(500));
+      DL_GPIO_togglePins(LED_PORT, LED_PIN_PIN);
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -327,8 +326,8 @@ static void vSensorTask(void *pvParameters) {
     (void)pvParameters;
     irSensor_DataInit(&irSensorData);
     for (;;) {
+        // Grayscale_Sensor_Read_All(sensor_values);
         irSensor_Update(&irSensorData);
-        
         vTaskDelay(pdMS_TO_TICKS(10));
     }
     
@@ -343,10 +342,10 @@ int main(void)
     xTaskCreate(vMainTask, "Main", 128, NULL, 1, NULL);
     xTaskCreate(vBlinkTask, "Blink", 128, NULL, 1, NULL);
     xTaskCreate(vUARTTask, "UART", 256, NULL, 1, NULL);
-    xTaskCreate(vMotorTask, "Motor", 128, NULL, 2, NULL);
-    xTaskCreate(vSensorTask, "Sensor", 128, NULL, 2, NULL);
-    xTaskCreate(vOLEDTask, "OLED", 256, NULL, 3, NULL);
-    xTaskCreate(vMPU9250Task, "MPU9250", 384, NULL, 3, NULL);
+    xTaskCreate(vMotorTask, "Motor", 128, NULL, 3, NULL);
+    xTaskCreate(vSensorTask, "Sensor", 128, NULL, 3, NULL);
+    xTaskCreate(vOLEDTask, "OLED", 256, NULL, 2, NULL);
+    xTaskCreate(vMPU9250Task, "MPU9250", 384, NULL, 4, NULL);
     vTaskStartScheduler();
     for (;;) {}
 }

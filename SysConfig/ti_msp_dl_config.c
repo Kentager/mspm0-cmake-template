@@ -199,6 +199,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(GrayS_PIN_2_IOMUX);
 
+    DL_GPIO_initDigitalOutput(LED_LEF_IOMUX);
+
     DL_GPIO_clearPins(GPIOA, IN_LEFT_IN1_PIN |
 		IN_LEFT_IN2_PIN |
 		IN_RIGHT_IN1_PIN |
@@ -225,8 +227,10 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		ENC_LEFT_ENB_PIN |
 		KEY_KEY_0_PIN |
 		KEY_KEY_1_PIN);
-    DL_GPIO_clearPins(GPIOB, LED_PIN_PIN);
-    DL_GPIO_enableOutput(GPIOB, LED_PIN_PIN);
+    DL_GPIO_clearPins(GPIOB, LED_PIN_PIN |
+		LED_LEF_PIN);
+    DL_GPIO_enableOutput(GPIOB, LED_PIN_PIN |
+		LED_LEF_PIN);
     DL_GPIO_setLowerPinsPolarity(GPIOB, DL_GPIO_PIN_6_EDGE_RISE_FALL |
 		DL_GPIO_PIN_7_EDGE_RISE_FALL |
 		DL_GPIO_PIN_9_EDGE_FALL |
