@@ -6,8 +6,7 @@
 #include "madgwick.h"
 #include "encoder.h"
 #include "ti_msp_dl_config.h"
-#include "channel_grayscale_sensor.h"
-#include "grayscale_sensor.h"
+#include "super_sensor.h"
 #include "motor_app.h"
 #include "mpu9250.h"
 #include <math.h>
@@ -158,47 +157,120 @@ static void vMainTask(void *pvParameters) {
         if (xQueueReceive(xJobQueue, &received_job, 0) == pdPASS) {
             if (received_job == Job_Stop) {
                 msg = Job_None;
-                Job_1_flag = 0U;
+                Job_1_flag = 0U;    
                 Motor_App_Brake();
             } else {
                 msg = received_job;
             }
         }
-
         switch (msg) {
         case Job_0:
-            Motor_App_SetSpeed(0.2f, 0.3264f);
+          // Motor_App_SetSpeed(0.3084f, 0.2f);    //0.3084--0.2  0.1542--0.1  0.0771--0.05  0.3855--0.25 0.4626--0.3
+            Motor_App_Drive(1.30, 1.30, 0.4);
+            while(!Motor_App_IsReached());
+            Motor_App_SetSpeed((0.68f * 1.025), 0.4f);
+            Motor_App_SetMode(SENSOR_MODE);
+            while(!(yaw<=-175||yaw>=175));
+            // Motor_App_SetSpeed(0.0f, 0.0f);
+            Motor_App_SetSpeed(0.4f, 0.4f);
+            Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(-177);
+            Motor_App_Drive(1.35, 1.35, 0.4);
+            while(!Motor_App_IsReached());
+            Motor_App_SetSpeed((0.68f * 1.025), 0.4f);
+            Motor_App_SetMode(SENSOR_MODE);
+            while(!(yaw>=-5&&yaw<=5));
+            Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(0);
+            Motor_App_SetSpeed(0.0f, 0.0f);
+            OLED_AppPauseTimer();
+            msg = Job_None;
             break;
         case Job_1:
-            switch(Job_1_flag){
-                case 0:
-                    Motor_App_SetMode(ANGLE_MODE);
-                    Motor_App_SetTargetYaw(0.0f);
-                    Motor_App_SetSpeed(0.4, 0.2);
-                    if(irSensorData.sensorFlag == 1U)Job_1_flag = 1;
-                    break;
-                case 1:
-                    Motor_App_SetMode(SENSOR_MODE);
-                    if(irSensorData.sensorFlag == 0U)Job_1_flag = 2;
-                    break;
-                case 2:
-                    Motor_App_SetMode(ANGLE_MODE);
-                    Motor_App_SetTargetYaw(-180.0f);
-                    Motor_App_SetSpeed(0.2, 0.2);
-                    if(irSensorData.sensorFlag == 1U)Job_1_flag = 3;
-                    break;
-                case 3:
-                    Motor_App_SetMode(SENSOR_MODE);
-                    if(irSensorData.sensorFlag == 0U)Job_1_flag = 0;
-                    break;
+          // Motor_App_Drive(1.7, 1.7, 0.3);
+            for(int i = 0;i < 20;i++){
+              Motor_App_SetSpeed(0.4f * i / 20, 0.4f * i / 20);
+              vTaskDelay(pdMS_TO_TICKS(160));
             }
+            Motor_App_Drive(0.8, 0.8, 0.4);
+            
+            while(!Motor_App_IsReached());
+
+            for(int i = 0;i < 20;i++){
+              Motor_App_SetSpeed(0.4f * (19 - i) / 20, 0.4f * (19 - i) / 20);
+              if(i == 5)            OLED_AppPauseTimer();
+              vTaskDelay(pdMS_TO_TICKS(160));
+            }
+            OLED_AppPauseTimer();
+            msg = Job_None;
             break;
         case Job_2:
+            for(int i = 0;i < 20;i++){
+                Motor_App_SetSpeed(0.3f * i / 20, 0.3f * i / 20);
+                vTaskDelay(pdMS_TO_TICKS(150));
+            }
+
             Motor_App_SetMode(SENSOR_MODE);
-            Motor_App_SetSpeed(0.2f, 0.2f);
+            
+            Motor_App_SetSpeed(0.3f, 0.3f);
+            Motor_App_Drive(1.29, 1.29, 0.3f);
+            while(!Motor_App_IsReached());
+            Motor_App_SetSpeed((0.4f * 1.025), 0.3f);
+
+            while (!(yaw <= -179 || yaw >= 179))
+              ;
+            Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(-180);
+            Motor_App_Drive(1.10, 1.10, 0.34f);
+            while(!Motor_App_IsReached());
+            Motor_App_SetMode(SENSOR_MODE);
+            Motor_App_SetSpeed((0.4f * 1.025 *( 0.32 / 0.3 )), 0.32f);
+            while(!(yaw>=-1&&yaw<=1));
+            Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(0);
+            Motor_App_Drive(0.2, 0.2, 0.32f);
+            OLED_AppPauseTimer();
+            while(!Motor_App_IsReached());
+            Motor_App_SetMode(SPEED_MODE);
+            for(int i = 0;i < 20;i++){
+                Motor_App_SetSpeed(0.32f * (19 - i) / 20, 0.32f * (19 - i) / 20);
+                vTaskDelay(pdMS_TO_TICKS(150));
+            }
+            msg = Job_None;
             break;
         case Job_3:
+            for(int i = 0;i < 20;i++){
+                Motor_App_SetSpeed(0.3f * i / 20, 0.3f * i / 20);
+                vTaskDelay(pdMS_TO_TICKS(150));
+            }
+
+            Motor_App_SetMode(SENSOR_MODE);
+            
+            Motor_App_SetSpeed(0.3f, 0.3f);
+            Motor_App_Drive(1.29, 1.29, 0.3f);
+            while(!Motor_App_IsReached());
+            Motor_App_SetSpeed((0.4f * 1.025), 0.3f);
+
+            while (!(yaw <= -179 || yaw >= 179))
+              ;
             Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(-180);
+            Motor_App_Drive(1.10, 1.10, 0.25f);
+            while(!Motor_App_IsReached());
+            Motor_App_SetMode(SENSOR_MODE);
+            Motor_App_SetSpeed((0.4f * 1.025 *( 0.3 / 0.25 )), 0.25f);
+            while(!(yaw>=-1&&yaw<=1));
+            Motor_App_SetMode(ANGLE_MODE);
+            Motor_App_SetTargetYaw(0);
+            Motor_App_Drive(0.2, 0.2, 0.32f);
+            OLED_AppPauseTimer();
+            while(!Motor_App_IsReached());
+            Motor_App_SetMode(SPEED_MODE);
+            for(int i = 0;i < 20;i++){
+                Motor_App_SetSpeed(0.32f * (19 - i) / 20, 0.32f * (19 - i) / 20);
+                vTaskDelay(pdMS_TO_TICKS(150));
+            }
+            msg = Job_None;
             break;
         case Job_None:
         case Job_Stop:
@@ -324,13 +396,14 @@ static void vOLEDTask(void *pvParameters) {
 
 static void vSensorTask(void *pvParameters) {
     (void)pvParameters;
-    irSensor_DataInit(&irSensorData);
+    Super_Sensor_Init(&superSensor);
     for (;;) {
-        // Grayscale_Sensor_Read_All(sensor_values);
-        irSensor_Update(&irSensorData);
+        Super_Sensor_Update(&superSensor);
+        for (uint8_t i = 0U; i < SUPER_SENSOR_COUNT; i++) {
+            sensor_values[i] = superSensor.sensorState[i];
+        }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-    
 }
 
 int main(void)

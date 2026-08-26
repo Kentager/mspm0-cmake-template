@@ -136,8 +136,8 @@ static void OLED_AppDrawDistancePageFrame(void)
 
 static void OLED_AppDrawGrayscalePageFrame(void)
 {
-    Menu_ShowTempPageTitle("Gray Sensor");
-    OLED_ShowString(4, 2, "1 2 3 4 5 6 7 8", 1);
+    Menu_ShowTempPageTitle("IR Sensor");
+    OLED_ShowString(4, 6, "1 2 3 4", 1);
     Menu_ShowTempPageHint();
 }
 
@@ -182,14 +182,14 @@ static void OLED_AppUpdateDistancePageData(void)
 
 static void OLED_AppUpdateGrayscalePageData(void)
 {
-    char buf[17];
-    for(uint8_t i = 0; i < 8 ; i ++){
+    char buf[9];
+    for(uint8_t i = 0; i < 4 ; i ++){
       buf[i * 2] = g_sensor_values[i] ? '#' : '-';
       buf[i * 2 + 1] = ' ';
     }
-    buf[16] = '\0';
-    OLED_ShowString(6, 2, "                ", 1);
-    OLED_ShowString(6, 2, buf, 1);
+    buf[8] = '\0';
+    OLED_ShowString(6, 6, "        ", 1);
+    OLED_ShowString(6, 6, buf, 1);
 }
 
 static void OLED_AppTimerSetPixel(uint8_t *bitmap, uint8_t x, uint8_t y)

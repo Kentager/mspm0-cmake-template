@@ -20,7 +20,7 @@ Speed_PID_t pid_right;
  */
 void Speed_PID_Init(void)
 {
-    pid_left.kp            = 2.0f;
+    pid_left.kp            = 1.0f;
     pid_left.ki            = 0.5f;
     pid_left.kd            = 0.0f;
     pid_left.integral      = 0.0f;
@@ -29,7 +29,7 @@ void Speed_PID_Init(void)
     pid_left.integral_limit = MOTOR_PWM_PERIOD * 0.8f;
     pid_left.output        = 0;
 
-    pid_right.kp            = 2.0f;
+    pid_right.kp            = 1.0f;
     pid_right.ki            = 0.5f;
     pid_right.kd            = 0.0f;
     pid_right.integral      = 0.0f;

@@ -1,7 +1,7 @@
 /*--------------------头文件--------------------*/
 
 #include "motor_app.h"
-#include "channel_grayscale_sensor.h"
+#include "super_sensor.h"
 #include "motor.h"
 #include "encoder.h"
 #include "speed_pid.h"
@@ -18,12 +18,15 @@ static Motor_Mode_e motor_mode = SPEED_MODE;
 #define MS_TO_PULSES_PER_SAMPLE(m_s, period_ms) \
     ((m_s) / ENCODER_DIST_PER_PULSE * ((period_ms) / 1000.0f))
 
-#define APP_SAMPLE_PERIOD_MS  10
+#define APP_SAMPLE_PERIOD_MS       10
+#define MOTOR_TARGET_FILTER_ALPHA  0.15f
 
 /*--------------------内部状态--------------------*/
 
-static float target_left_ms;        /* 左电机目标速度 m/s */
-static float target_right_ms;       /* 右电机目标速度 m/s */
+static float target_left_ms;          /* 左电机目标速度 m/s */
+static float target_right_ms;         /* 右电机目标速度 m/s */
+static float filtered_target_left_ms; /* 滤波后的左电机目标速度 m/s */
+static float filtered_target_right_ms; /* 滤波后的右电机目标速度 m/s */
 
 static bool  distance_mode;         /* 是否处于限距模式 */
 static float dist_target_left;      /* 左电机目标距离 m */
@@ -36,6 +39,24 @@ static float target_yaw;            /* 目标角度 */
 
 /*--------------------内部函数--------------------*/
 
+static float Motor_App_FilterTarget(float filtered, float target)
+{
+    return filtered + MOTOR_TARGET_FILTER_ALPHA * (target - filtered);
+}
+
+/**
+ * @brief 把角度误差绕回 [-180, 180]，消除 ±180 处的跳变
+ *
+ * 例：target = -180、current = 179 时原始误差 -359°，绕回后为 +1°，
+ * 即"再左转 1°"，而不是"右转 179°"。
+ */
+static float Motor_App_WrapDeg(float deg)
+{
+    while (deg >  180.0f) deg -= 360.0f;
+    while (deg < -180.0f) deg += 360.0f;
+    return deg;
+}
+
 /**
  * @brief 行驶到目标距离后自动停车
  */
@@ -43,8 +64,10 @@ static void Motor_App_Stop(void)
 {
     Motor_SetSpeed(&motor_left,  0);
     Motor_SetSpeed(&motor_right, 0);
-    target_left_ms  = 0.0f;
-    target_right_ms = 0.0f;
+    target_left_ms           = 0.0f;
+    target_right_ms          = 0.0f;
+    filtered_target_left_ms  = 0.0f;
+    filtered_target_right_ms = 0.0f;
     Speed_PID_Reset(&pid_left);
     Speed_PID_Reset(&pid_right);
 }
@@ -57,9 +80,11 @@ void Motor_App_Init(void)
     Encoder_Init();
     Speed_PID_Init();
 
-    target_left_ms    = 0.0f;
-    target_right_ms = 0.0f;
-    
+    target_left_ms           = 0.0f;
+    target_right_ms          = 0.0f;
+    filtered_target_left_ms  = 0.0f;
+    filtered_target_right_ms = 0.0f;
+
     distance_mode     = false;
     dist_target_left  = 0.0f;
     dist_target_right = 0.0f;
@@ -91,43 +116,49 @@ void Motor_App_Update(void)
                                                        : (traveled_r <= dist_target_right);
 
         if (left_reached && right_reached) {
-            Motor_App_Stop();
+            // Motor_App_Stop();
             distance_mode = false;
             return;
         }
 
         /* 单侧到达后停止该侧 */
-        if (left_reached)  target_left_ms  = 0.0f;
-        if (right_reached) target_right_ms = 0.0f;
+        // if (left_reached)  target_left_ms  = 0.0f;
+        // if (right_reached) target_right_ms = 0.0f;
     }
+
+    filtered_target_left_ms = Motor_App_FilterTarget(
+        filtered_target_left_ms, target_left_ms);
+    filtered_target_right_ms = Motor_App_FilterTarget(
+        filtered_target_right_ms, target_right_ms);
+
     float target_l;
     float target_r;
     switch (motor_mode) {
         case ANGLE_MODE: {
             /* 3. 角度控制 */
-            float yaw_diff = (target_yaw - current_yaw) / 180.0f; /* (目标角度 - 当前角度) / 180度 (-1.0 ~ 1.0) */
-            while(yaw_diff > 1.0f || yaw_diff < -1.0f)yaw_diff = (yaw_diff >1.0f) ? -(yaw_diff - 1.0f) : (yaw_diff < -1.0f) ? -(yaw_diff + 1.0f) : yaw_diff;
+            /* (目标角度 - 当前角度) 先绕回 [-180,180]，再归一化到 -1.0 ~ 1.0 */
+            float yaw_diff = Motor_App_WrapDeg(target_yaw - current_yaw) / 180.0f;
             /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + yaw_diff * 0.6f,  APP_SAMPLE_PERIOD_MS);
-            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - yaw_diff * 0.6f, APP_SAMPLE_PERIOD_MS);
+            target_l = MS_TO_PULSES_PER_SAMPLE(filtered_target_left_ms + yaw_diff * 0.3f,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(filtered_target_right_ms - yaw_diff * 0.3f, APP_SAMPLE_PERIOD_MS);
             break;
         }
         case SPEED_MODE:
             /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms,  APP_SAMPLE_PERIOD_MS);
-            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms, APP_SAMPLE_PERIOD_MS);
+            target_l = MS_TO_PULSES_PER_SAMPLE(filtered_target_left_ms,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(filtered_target_right_ms, APP_SAMPLE_PERIOD_MS);
             break;
         case SENSOR_MODE:{
             /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-            float diff_speed = irSensor_GetDiffSpeed(&irSensorData);
-            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms + diff_speed / 2, APP_SAMPLE_PERIOD_MS);
-            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms - diff_speed / 2, APP_SAMPLE_PERIOD_MS);
+            float diff_speed = Super_Sensor_GetDiffSpeed(&superSensor);
+            target_l = MS_TO_PULSES_PER_SAMPLE(filtered_target_left_ms - diff_speed / 2, APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(filtered_target_right_ms + diff_speed / 2, APP_SAMPLE_PERIOD_MS);
             break;
         }
         default:
             /* 4. m/s → 脉冲/采样周期（float 保留精度） */
-            target_l = MS_TO_PULSES_PER_SAMPLE(target_left_ms,  APP_SAMPLE_PERIOD_MS);
-            target_r = MS_TO_PULSES_PER_SAMPLE(target_right_ms, APP_SAMPLE_PERIOD_MS);
+            target_l = MS_TO_PULSES_PER_SAMPLE(filtered_target_left_ms,  APP_SAMPLE_PERIOD_MS);
+            target_r = MS_TO_PULSES_PER_SAMPLE(filtered_target_right_ms, APP_SAMPLE_PERIOD_MS);
             break;
     }
     /* 5. PID 计算 */
@@ -162,12 +193,12 @@ void Motor_App_Drive(float left_m, float right_m, float speed_m_s)
     dist_start_right = Encoder_GetDistance(&encoder_right);
 
     /* 设置目标距离 */
-    dist_target_left  = left_m;
-    dist_target_right = right_m;
+    dist_target_left  = -left_m;
+    dist_target_right = -right_m;
 
     /* 设置速度方向与距离方向一致 */
-    target_left_ms  = (left_m  >= 0) ? speed_m_s : -speed_m_s;
-    target_right_ms = (right_m >= 0) ? speed_m_s : -speed_m_s;
+    target_left_ms  = (left_m  >= 0) ? -speed_m_s : speed_m_s;
+    target_right_ms = (right_m >= 0) ? -speed_m_s : speed_m_s;
 
     distance_mode = true;
 }
@@ -217,9 +248,11 @@ void Motor_App_Brake(void)
     Motor_Brake(&motor_right);
     Speed_PID_Reset(&pid_left);
     Speed_PID_Reset(&pid_right);
-    target_left_ms   = 0.0f;
-    target_right_ms  = 0.0f;
-    target_yaw       = current_yaw;
+    target_left_ms           = 0.0f;
+    target_right_ms          = 0.0f;
+    filtered_target_left_ms  = 0.0f;
+    filtered_target_right_ms = 0.0f;
+    target_yaw               = current_yaw;
     distance_mode    = false;
     motor_mode       = SPEED_MODE;
 }

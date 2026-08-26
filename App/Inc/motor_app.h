@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "channel_grayscale_sensor.h"
 
 
 typedef enum {
